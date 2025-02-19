@@ -29,12 +29,18 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+<<<<<<< HEAD
+# env files (can opt-in for committing if needed)
+.env*
+/Backend/.env*
+=======
 # Ignore all .env files
 .env
 
 # Ignore .env files inside specific directories
 /backend/.env
 
+>>>>>>> 2abe5d73e24bb98284c0eaa23570fb55afa3a6b5
 
 # vercel
 .vercel

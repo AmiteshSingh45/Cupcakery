@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { useParams } from "next/navigation"; // Import useParams
 
 const ProductDetail = () => {
-  const { slug } = useParams(); // Correct way to access params in App Router
+  const { slug } = useParams(); // Get product slug
   const { cart, setCart } = useCart([]);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,10 +40,9 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
-    if (!Array.isArray(cart)) {
-      setCart([]); // Ensure cart is an array
-    }
-    setCart((prevCart) => [...prevCart, product]);
+    
+    setCart((prevCart) => (Array.isArray(prevCart) ? [...prevCart, product] : [product]));
+    
     toast.success("Item Added to Cart");
   };
 

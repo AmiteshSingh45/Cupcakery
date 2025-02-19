@@ -42,6 +42,7 @@ const HomePage = () => {
     try {
       setLoading(true);
       const { data } = await axios.get("http://localhost:4000/api/v1/product/product-list");
+      console.log("Fetched Products:", data); // Debugging Log
       setLoading(false);
       if (data?.products) setProducts(data.products);
     } catch (error) {
@@ -49,6 +50,7 @@ const HomePage = () => {
       console.error("Error fetching products:", error);
     }
   };
+  
 
   const handleFilter = (value, id) => {
     let updatedChecked = [...checked];
@@ -110,7 +112,7 @@ const HomePage = () => {
           </div>
 
           {/* Divider */}
-          <hr className="my-6 border-gray-200" />
+          <hr className="my-6 border-gray-200" /> 
 
           {/* Filter By Price Section */}
           <div className="mb-8">
@@ -122,7 +124,7 @@ const HomePage = () => {
                     type="radio"
                     name="price"
                     value={p.array}
-                    onChange={(e) => setRadio(e.target.value)}
+                    onChange={() => setRadio(p.array)}
                     className="form-radio h-5 w-5 text-blue-500 focus:ring-blue-400"
                   />
                   <span className="text-gray-700">{p.name}</span>

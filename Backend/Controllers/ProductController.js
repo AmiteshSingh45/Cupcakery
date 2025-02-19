@@ -198,19 +198,23 @@ export const productFiltersController = async (req, res) => {
   try {
     const { checked, radio } = req.body;
     let args = {};
+
     if (checked.length > 0) args.category = checked;
-    if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
+    
+    // Ensure radio is an array with exactly two numbers
+    if (Array.isArray(radio) && radio.length === 2 && !isNaN(radio[0]) && !isNaN(radio[1])) {
+      args.price = { $gte: Number(radio[0]), $lte: Number(radio[1]) };
+    }
+
     const products = await productModel.find(args);
-    res.status(200).send({
-      success: true,
-      products,
-    });
+    res.status(200).send({ success: true, products });
+
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).send({
       success: false,
-      message: "Error WHile Filtering Products",
-      error,
+      message: "Error While Filtering Products",
+      error: error.message,
     });
   }
 };
@@ -238,14 +242,8 @@ export const productCountController = async (req, res) => {
 // product list base on page
 export const productListController = async (req, res) => {
   try {
-    const perPage = 2;
-    const page = req.params.page ? req.params.page : 1;
-    const products = await productModel
-      .find({})
-      .select("-photo")
-      .skip((page - 1) * perPage)
-      .limit(perPage)
-      .sort({ createdAt: -1 });
+    const products = await productModel.find({}).select("-photo").sort({ createdAt: -1 });
+
     res.status(200).send({
       success: true,
       products,
@@ -254,11 +252,12 @@ export const productListController = async (req, res) => {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: "error in per page ctrl",
+      message: "Error fetching products",
       error,
     });
   }
 };
+
 
 // search product
 export const searchProductController = async (req, res) => {
