@@ -3,7 +3,7 @@ import { comparePassword, hashPassword } from "../Helpher/AuthHelpher.js";
 import JWT from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import otpGenerator from "otp-generator";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 
 const otpStore = new Map();
