@@ -9,29 +9,28 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Checkout - Create Order
+// ✅ Checkout - Create Order
 export const checkout = async (req, res) => {
   try {
-    // const { amount, cartItems, userShipping, userId } = req.body;
-    console.log("checkout page ke andar")
-    const { amount, receiptId } = req.body;
-    console.log("in checkout controllers", amount, receiptId);
+    console.log("checkout page ke andar");
+    const { amount, receipt } = req.body; // frontend se {amount, receipt} aayega
+    console.log("in checkout controllers", amount, receipt);
 
-    var options = {
-      amount: amount * 100, // Convert to paisa
+    const options = {
+      amount: amount * 100, // Convert to paisa (Razorpay expects in paise)
       currency: "INR",
-      receipt: `receipt_${Date.now()}`,
+      receipt: receipt || `receipt_${Date.now()}`,
     };
 
     const order = await razorpay.orders.create(options);
-    console.log("Amount = ",options.amount)
+    console.log("Amount = ", options.amount);
+
     res.json({
       success: true,
-      orderId: receiptId,
+      orderId: order.id,   // Razorpay se actual orderId
       amount: amount,
-    //   cartItems,
-    //   userShipping,
-    //   userId,
+      currency: order.currency,
+      receipt: order.receipt,
       payStatus: "created",
     });
   } catch (error) {
@@ -40,7 +39,7 @@ export const checkout = async (req, res) => {
   }
 };
 
-// Verify Payment & Save to DB
+// ✅ Verify Payment & Save to DB
 export const verifyPayment = async (req, res) => {
   try {
     const {
@@ -55,14 +54,16 @@ export const verifyPayment = async (req, res) => {
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
     const body = orderId + "|" + paymentId;
-    console.log("Verify payment = ",amount)
+
+    console.log("Verify payment = ", amount);
+
     const expectedSignature = crypto
       .createHmac("sha256", secret)
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== signature) {
-      // Save to DB
+    if (expectedSignature === signature) {
+      // ✅ Only save if verified
       const orderConfirm = await Payment.create({
         orderId,
         paymentId,
@@ -79,8 +80,7 @@ export const verifyPayment = async (req, res) => {
         message: "Payment successful",
         orderConfirm,
       });
-    }
-    else {
+    } else {
       res.status(400).json({ success: false, message: "Payment verification failed" });
     }
   } catch (error) {
@@ -88,4 +88,3 @@ export const verifyPayment = async (req, res) => {
     res.status(500).json({ success: false, message: "Error verifying payment" });
   }
 };
-

@@ -4,19 +4,18 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../../Context/cart";
 import { useAuth } from "../../Context/auth";
 import { useRouter } from "next/navigation";
-import { FaTrash } from "react-icons/fa"; // Import the trash icon
+import { FaTrash } from "react-icons/fa";
 
 const CartPage = () => {
   const paymentHandler = async (e, amount) => {
     e.preventDefault();
     const receiptId = "qwsaq1";
-    console.log("amount = ", amount);
 
     try {
       const response = await fetch("http://localhost:4000/api/v1/payment/create-order", {
         method: "POST",
         body: JSON.stringify({
-          amount: amount,
+          amount: amount, // ✅ in rupees, sent to backend
           currency: "INR",
           receipt: receiptId,
         }),
@@ -33,23 +32,26 @@ const CartPage = () => {
       const order = await response.json();
       console.log("Order Created: ", order);
 
-      var options = {
-        key: "rzp_test_mZGFuX4QG8UG7y",
-        amount: amount * 100,
-        currency: "INR",
+      // ⚠️ IMPORTANT FIX: Pass the amount to Razorpay in paise
+      const razorpayAmount = order.amount * 100; // Multiply by 100
+
+      const options = {
+        key: "rzp_test_s7445STXOihmYb",
+        amount: razorpayAmount, // ✅ Use the converted amount in paise
+        currency: order.currency,
         name: "Acme Corp",
         description: "Test Transaction",
-        order_id: order.id,
+        order_id: order.orderId,
         handler: async function (response) {
           console.log("Payment Successful: ", response);
 
           const orderDetails = {
             userId: "67ae3b5bb1e1642a2f53011c",
             payStatus: "paid",
-            orderId: order.id,
+            orderId: response.razorpay_order_id,
             paymentId: response.razorpay_payment_id,
             signature: response.razorpay_signature,
-            amount: amount,
+            amount: amount, // Pass the original rupee amount
             orderItems: cartArray,
             userShipping: auth.user,
             orderDate: new Date().toISOString(),
@@ -85,7 +87,7 @@ const CartPage = () => {
         },
       };
 
-      var rzp1 = new window.Razorpay(options);
+      const rzp1 = new window.Razorpay(options);
       rzp1.on("payment.failed", function (response) {
         alert("Payment Failed: " + response.error.description);
       });
@@ -118,7 +120,6 @@ const CartPage = () => {
     return cartArray.reduce((total, item) => total + item.price, 0);
   };
 
-  // Function to remove an item from the cart
   const removeItem = (productId) => {
     const updatedCart = cartArray.filter((item) => item._id !== productId);
     setCart(updatedCart);
@@ -158,7 +159,7 @@ const CartPage = () => {
                     <p className="text-gray-600 text-sm mt-1">{p.description.substring(0, 50)}...</p>
                     <p className="text-lg font-semibold text-gray-900 mt-2">₹{p.price}</p>
                   </div>
-                  
+
                   <button
                     onClick={() => removeItem(p._id)}
                     className="flex items-center justify-center bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
