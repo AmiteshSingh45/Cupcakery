@@ -1,14 +1,18 @@
-"use client"; // ✅ Ensure this is a client component
+"use client"; // ✅ Client Component
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { Select } from "antd";
-import AdminMenu from "../../../../components/Adminmenu";
-const { Option } = Select;
 import Image from "next/image";
+import AdminMenu from "../../../../components/Adminmenu";
+
+const { Option } = Select;
 
 const CreateProduct = () => {
+  const router = useRouter();
+
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -19,41 +23,51 @@ const CreateProduct = () => {
   const [photo, setPhoto] = useState(null);
   const [token, setToken] = useState(null);
 
-  // ✅ Get auth only on client side (avoid hydration/localStorage error)
+  // ✅ Get token from localStorage safely
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const auth = JSON.parse(localStorage.getItem("auth"));
-      setToken(auth?.token || null);
+      try {
+        const auth = JSON.parse(localStorage.getItem("auth"));
+        setToken(auth?.token || null);
+      } catch {
+        setToken(null);
+      }
     }
   }, []);
 
-  // ✅ Get all categories
+  // ✅ Fetch all categories
   useEffect(() => {
+    let isMounted = true;
+
     const getAllCategory = async () => {
       if (!token) return;
 
       try {
         const { data } = await axios.get(
           "http://localhost:4000/api/v1/category/get-category",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        if (data?.success) {
-          setCategories(data?.category);
-        } else {
-          toast.error(data.message);
-        }
-      } catch (error) {
-        toast.error("Something went wrong while fetching categories.");
+        if (data?.success && isMounted) setCategories(data?.category);
+        else if (isMounted) toast.error(data.message);
+      } catch {
+        if (isMounted) toast.error("Something went wrong while fetching categories.");
       }
     };
 
     getAllCategory();
+
+    return () => (isMounted = false);
   }, [token]);
 
-  // ✅ Create product
+  // ✅ Revoke object URL on photo change/unmount
+  useEffect(() => {
+    return () => {
+      if (photo) URL.revokeObjectURL(photo);
+    };
+  }, [photo]);
+
+  // ✅ Handle product creation
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!token) return toast.error("Authentication failed. Please log in.");
@@ -76,11 +90,11 @@ const CreateProduct = () => {
 
       if (data?.success) {
         toast.success("Product Created Successfully");
-        window.location.href = "/dashboard/admin/products"; // ✅ navigate
+        router.push("/dashboard/admin/products"); // ✅ SPA navigation
       } else {
         toast.error(data?.message);
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong while creating the product.");
     }
   };
@@ -224,4 +238,5 @@ const CreateProduct = () => {
     </div>
   );
 };
+
 export default CreateProduct;
