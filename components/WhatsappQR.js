@@ -53,7 +53,13 @@ const WhatsAppQR = () => {
         >
           <h2 className="text-lg font-bold mb-2 text-gray-800">Order via WhatsApp</h2>
           <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-            <img src={qrCodeUrl} alt="WhatsApp QR Code" width="150" height="150" />
+            <Image
+  src={qrCodeUrl}
+  alt="WhatsApp QR Code"
+  width={150}
+  height={150}
+ />
+            
           </a>
           <p className="text-sm text-gray-600 mt-2">Scan to order instantly!</p>
         </div>
