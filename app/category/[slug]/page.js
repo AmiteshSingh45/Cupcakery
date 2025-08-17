@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "../../../Context/cart"; // Import cart context
 import { toast } from "react-hot-toast"; // Import toast
+import Image from "next/image";
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -62,11 +63,14 @@ const CategoryPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mt-6">
         {products.map((product) => (
           <div key={product._id} className="bg-white p-4 rounded-lg shadow-lg">
-            <img
-              src={`http://localhost:4000/api/v1/product/product-photo/${product._id}`}
-              alt={product.name}
-              className="w-full h-40 object-cover rounded-md"
-            />
+            <Image
+  src={`http://localhost:4000/api/v1/product/product-photo/${product._id}`}
+  alt={product.name}
+  width={500}   // ✅ required in Next.js Image
+  height={200}  // ✅ required in Next.js Image
+  className="w-full h-40 object-cover rounded-md"
+/>
+
             <h2 className="text-lg font-semibold mt-2 text-black">{product.name}</h2>
             <p className="text-gray-600">{product.description.substring(0, 50)}...</p>
             <p className="text-lg font-bold text-gray-800 mt-2">₹{product.price}</p>

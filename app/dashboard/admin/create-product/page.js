@@ -20,30 +20,33 @@ const CreateProduct = () => {
   const auth = JSON.parse(localStorage.getItem("auth")); // Parse stored object
   const token = auth?.token; // Extract token
 
-  // Get all categories
-  const getAllCategory = async () => {
-    if (!token) {
-      return toast.error("Authentication failed. Please log in.");
-    }
-
-    try {
-      const { data } = await axios.get("http://localhost:4000/api/v1/category/get-category", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (data?.success) {
-        setCategories(data?.category);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error("Something went wrong while fetching categories.");
-    }
-  };
-
+  // ✅ Get all categories (moved inside useEffect to avoid missing dependency warning)
   useEffect(() => {
+    const getAllCategory = async () => {
+      if (!token) {
+        return toast.error("Authentication failed. Please log in.");
+      }
+
+      try {
+        const { data } = await axios.get(
+          "http://localhost:4000/api/v1/category/get-category",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (data?.success) {
+          setCategories(data?.category);
+        } else {
+          toast.error(data.message);
+        }
+      } catch (error) {
+        toast.error("Something went wrong while fetching categories.");
+      }
+    };
+
     getAllCategory();
-  }, []);
+  }, [token]); // ✅ only runs when token changes
 
   // Create product function
   const handleCreate = async (e) => {
@@ -87,10 +90,14 @@ const CreateProduct = () => {
 
       {/* Main Content */}
       <div className="w-3/4 p-8">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">Create Product</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">
+          Create Product
+        </h1>
 
-        
-        <form className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md" onSubmit={handleCreate}>
+        <form
+          className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
+          onSubmit={handleCreate}
+        >
           {/* Category Selection */}
           <div className="mb-4">
             <label className="block font-semibold mb-2">Category</label>
@@ -126,7 +133,11 @@ const CreateProduct = () => {
           {/* Image Preview */}
           {photo && (
             <div className="mb-4 text-center">
-              <img src={URL.createObjectURL(photo)} alt="product_photo" className="h-40 mx-auto rounded-md" />
+              <img
+                src={URL.createObjectURL(photo)}
+                alt="product_photo"
+                className="h-40 mx-auto rounded-md"
+              />
             </div>
           )}
 

@@ -11,10 +11,14 @@ const Footer = () => {
         
         {/* Column 1: Branding & Description */}
         <div>
-          <Link href="/"><h2 className="text-2xl font-bold text-purple-600">Bindi's Cupcakery 🍰</h2></Link>
+          <Link href="/">
+            <h2 className="text-2xl font-bold text-purple-600">
+              Bindi&apos;s Cupcakery 🍰
+            </h2>
+          </Link>
           <p className="text-sm mt-2 text-gray-600">
-  Homemade, eggless, and preservative-free desserts made with love in Surat.
-</p>
+            Homemade, eggless, and preservative-free desserts made with love in Surat.
+          </p>
         </div>
 
         {/* Column 2: Quick Links */}
@@ -54,7 +58,9 @@ const Footer = () => {
 
       {/* Bottom Section */}
       <div className="text-center border-t border-gray-300 mt-8 pt-4 text-sm text-gray-600">
-        <p>Copyright &copy; {new Date().getFullYear()} Bindi&apos;s Cupcakery - All Rights Reserved</p>
+        <p>
+          Copyright &copy; {new Date().getFullYear()} Bindi&apos;s Cupcakery - All Rights Reserved
+        </p>
       </div>
     </footer>
   );
