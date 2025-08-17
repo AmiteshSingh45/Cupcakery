@@ -15,7 +15,7 @@
         setSelectedImage((prevIndex) => (prevIndex + 1) % images.length);
       }, 3000);
       return () => clearInterval(interval);
-    }, []);
+    }, [images.length]);
 
     return (
       <div className="bg-white text-gray-900">
