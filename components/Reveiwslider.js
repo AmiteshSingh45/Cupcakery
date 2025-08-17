@@ -37,7 +37,7 @@ const ReviewSlider = () => {
         >
           {reviews.map((review, index) => (
             <SwiperSlide key={`${review._id}-${index}`} className="text-center text-gray-800">
-              <p className="text-lg italic">"{review.review_text}"</p>
+              <p className="text-lg italic">&quot;{review.review_text}&quot;</p>
               <p className="mt-2 font-semibold">- {review.user_id?.name || "Anonymous"}</p>
               <p className="mt-1 text-yellow-500">⭐ {review.rating} / 5</p>
             </SwiperSlide>
