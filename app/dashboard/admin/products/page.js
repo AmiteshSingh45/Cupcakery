@@ -1,64 +1,83 @@
 "use client"; // Ensure this is a client component
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import Link from "next/link"; // Using Next.js Link for routing
+import Link from "next/link";
+import Image from "next/image";
 import AdminMenu from "../../../../components/Adminmenu";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const auth = JSON.parse(localStorage.getItem("auth")); // Parse stored object
-  const token = auth?.token; // Extract token
+  const auth = JSON.parse(localStorage.getItem("auth"));
+  const token = auth?.token;
+
+  // Fallback image for broken images
+  const fallbackImage = "https://via.placeholder.com/150";
 
   // Get all products
-  const getAllProducts = async () => {
+  const getAllProducts = useCallback(async () => {
     try {
-      const { data } = await axios.get("http://localhost:4000/api/v1/product/get-product", {
-        headers: { Authorization: `Bearer ${token}` }, // Include token in the header
-      });
+      const { data } = await axios.get(
+        "http://localhost:4000/api/v1/product/get-product",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setProducts(data.products);
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong while fetching products.");
     }
-  };
+  }, [token]);
 
-  // Lifecycle method
   useEffect(() => {
     getAllProducts();
-  }, []);
-
-  // Fallback image for broken images
-  const fallbackImage = "https://via.placeholder.com/150"; // Placeholder image URL
+  }, [getAllProducts]);
 
   return (
     <div className="container mx-auto p-6 bg-white text-black min-h-screen">
       <div className="flex flex-col md:flex-row">
         {/* Sidebar for Admin Menu */}
         <div className="w-full md:w-1/4 bg-gray-800 text-white p-4 rounded-md">
-          <h2 className="text-xl font-semibold mb-4 text-white text-center">Admin Menu</h2>
+          <h2 className="text-xl font-semibold mb-4 text-white text-center">
+            Admin Menu
+          </h2>
           <AdminMenu />
         </div>
 
         {/* Main Content */}
         <div className="w-full md:w-3/4 mt-6 md:mt-0">
-          <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">All Products</h1>
+          <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
+            All Products
+          </h1>
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products?.map((p) => (
-              <Link key={p._id} href={`/dashboard/admin/product/${p.slug}`} passHref>
+              <Link
+                key={p._id}
+                href={`/dashboard/admin/product/${p.slug}`}
+                passHref
+              >
                 <div className="card bg-gray-100 border border-gray-300 rounded-lg shadow-md p-4 hover:shadow-lg transition duration-300 cursor-pointer">
-                  <img
-                    src={`http://localhost:4000/api/v1/product/product-photo/${p._id}`} // Full URL
-                    className="w-full h-56 object-cover rounded-md mb-4"
+                  <Image
+                    src={`http://localhost:4000/api/v1/product/product-photo/${p._id}`}
                     alt={p.name}
-                    onError={(e) => (e.target.src = fallbackImage)} // Fallback image on error
+                    width={400}
+                    height={224}
+                    className="w-full h-56 object-cover rounded-md mb-4"
+                    onError={(e) => {
+                      e.currentTarget.src = fallbackImage;
+                    }}
                   />
                   <div className="card-body">
-                    <h5 className="card-title text-lg font-bold text-gray-900">{p.name}</h5>
-                    <p className="card-text text-gray-700 text-sm truncate">{p.description}</p>
+                    <h5 className="card-title text-lg font-bold text-gray-900">
+                      {p.name}
+                    </h5>
+                    <p className="card-text text-gray-700 text-sm truncate">
+                      {p.description}
+                    </p>
                   </div>
                 </div>
               </Link>

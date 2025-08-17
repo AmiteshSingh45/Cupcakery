@@ -1,4 +1,4 @@
-"use client"; // Ensure this is a client component
+"use client"; // ✅ Ensure this is a client component
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
@@ -6,6 +6,7 @@ import axios from "axios";
 import { Select } from "antd";
 import AdminMenu from "../../../../components/Adminmenu";
 const { Option } = Select;
+import Image from "next/image";
 
 const CreateProduct = () => {
   const [categories, setCategories] = useState([]);
@@ -15,17 +16,21 @@ const CreateProduct = () => {
   const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("");
   const [shipping, setShipping] = useState("");
-  const [photo, setPhoto] = useState("");
+  const [photo, setPhoto] = useState(null);
+  const [token, setToken] = useState(null);
 
-  const auth = JSON.parse(localStorage.getItem("auth")); // Parse stored object
-  const token = auth?.token; // Extract token
+  // ✅ Get auth only on client side (avoid hydration/localStorage error)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const auth = JSON.parse(localStorage.getItem("auth"));
+      setToken(auth?.token || null);
+    }
+  }, []);
 
-  // ✅ Get all categories (moved inside useEffect to avoid missing dependency warning)
+  // ✅ Get all categories
   useEffect(() => {
     const getAllCategory = async () => {
-      if (!token) {
-        return toast.error("Authentication failed. Please log in.");
-      }
+      if (!token) return;
 
       try {
         const { data } = await axios.get(
@@ -46,14 +51,12 @@ const CreateProduct = () => {
     };
 
     getAllCategory();
-  }, [token]); // ✅ only runs when token changes
+  }, [token]);
 
-  // Create product function
+  // ✅ Create product
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!token) {
-      return toast.error("Authentication failed. Please log in.");
-    }
+    if (!token) return toast.error("Authentication failed. Please log in.");
 
     try {
       const productData = new FormData();
@@ -63,6 +66,7 @@ const CreateProduct = () => {
       productData.append("quantity", quantity);
       productData.append("photo", photo);
       productData.append("category", category);
+      productData.append("shipping", shipping);
 
       const { data } = await axios.post(
         "http://localhost:4000/api/v1/product/create-product",
@@ -72,7 +76,7 @@ const CreateProduct = () => {
 
       if (data?.success) {
         toast.success("Product Created Successfully");
-        window.location.href = "/dashboard/admin/products"; // Navigate to products page
+        window.location.href = "/dashboard/admin/products"; // ✅ navigate
       } else {
         toast.error(data?.message);
       }
@@ -104,8 +108,9 @@ const CreateProduct = () => {
             <Select
               placeholder="Select a category"
               size="large"
-              className="w-full border border-gray-300 rounded-md p-2"
+              className="w-full border border-gray-300 rounded-md"
               onChange={(value) => setCategory(value)}
+              value={category || undefined}
             >
               {categories?.map((c) => (
                 <Option key={c._id} value={c._id}>
@@ -132,13 +137,14 @@ const CreateProduct = () => {
 
           {/* Image Preview */}
           {photo && (
-            <div className="mb-4 text-center">
-              <img
-                src={URL.createObjectURL(photo)}
-                alt="product_photo"
-                className="h-40 mx-auto rounded-md"
-              />
-            </div>
+            <Image
+              src={URL.createObjectURL(photo)}
+              alt="product_photo"
+              width={160}
+              height={160}
+              className="h-40 mx-auto rounded-md object-cover"
+              unoptimized
+            />
           )}
 
           {/* Product Details */}
@@ -150,6 +156,7 @@ const CreateProduct = () => {
               placeholder="Enter product name"
               className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
               onChange={(e) => setName(e.target.value)}
+              required
             />
           </div>
 
@@ -160,6 +167,7 @@ const CreateProduct = () => {
               placeholder="Enter product description"
               className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
               onChange={(e) => setDescription(e.target.value)}
+              required
             />
           </div>
 
@@ -171,6 +179,7 @@ const CreateProduct = () => {
               placeholder="Enter price"
               className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
               onChange={(e) => setPrice(e.target.value)}
+              required
             />
           </div>
 
@@ -182,6 +191,7 @@ const CreateProduct = () => {
               placeholder="Enter quantity"
               className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
               onChange={(e) => setQuantity(e.target.value)}
+              required
             />
           </div>
 
@@ -191,8 +201,9 @@ const CreateProduct = () => {
             <Select
               placeholder="Select Shipping Option"
               size="large"
-              className="w-full border border-gray-300 rounded-md p-2"
+              className="w-full border border-gray-300 rounded-md"
               onChange={(value) => setShipping(value)}
+              value={shipping || undefined}
             >
               <Option value="0">Not Available</Option>
               <Option value="1">Available</Option>
@@ -213,5 +224,4 @@ const CreateProduct = () => {
     </div>
   );
 };
-
 export default CreateProduct;
