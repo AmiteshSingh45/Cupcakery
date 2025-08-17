@@ -1,20 +1,21 @@
-'use client'
+"use client";
 import React, { useState, useEffect } from "react";
 import UserMenu from "./../../../../components/Usermenu";
 import axios from "axios";
 import { useAuth } from "../../../../Context/auth";
 import moment from "moment";
+import Image from "next/image";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
 
   const getOrders = async () => {
     try {
-      const { data } = await axios.get("/api/v1/auth/orders");
+      const { data } = await axios.get("http://localhost:4000/api/v1/auth/orders");
       setOrders(data);
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching orders:", error);
     }
   };
 
@@ -32,12 +33,17 @@ const Orders = () => {
 
         {/* Orders Section */}
         <div className="w-full md:w-3/4 p-4">
-          <h1 className="text-3xl text-black font-semibold text-center mb-6">Your Orders</h1>
+          <h1 className="text-3xl text-black font-semibold text-center mb-6">
+            Your Orders
+          </h1>
 
           {orders?.map((o, i) => (
-            <div key={i} className="mb-6 bg-gray-100 rounded-xl shadow-md p-6">
+            <div
+              key={i}
+              className="mb-6 bg-gray-100 rounded-xl shadow-md p-6"
+            >
               {/* Order Details Table */}
-              <table className="w-full border-collapse border border-gray-300 rounded-lg">
+              <table className="w-full border-collapse border border-gray-300 rounded-lg overflow-hidden">
                 <thead className="bg-gray-200">
                   <tr className="text-gray-700 text-left">
                     <th className="py-3 px-4">#</th>
@@ -53,8 +59,16 @@ const Orders = () => {
                     <td className="py-3 px-4">{i + 1}</td>
                     <td className="py-3 px-4">{o?.status}</td>
                     <td className="py-3 px-4">{o?.buyer?.name}</td>
-                    <td className="py-3 px-4">{moment(o?.createdAt).fromNow()}</td>
-                    <td className={`py-3 px-4 font-medium ${o?.payment.success ? "text-green-600" : "text-red-600"}`}>
+                    <td className="py-3 px-4">
+                      {moment(o?.createdAt).fromNow()}
+                    </td>
+                    <td
+                      className={`py-3 px-4 font-medium ${
+                        o?.payment.success
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
                       {o?.payment.success ? "Success" : "Failed"}
                     </td>
                     <td className="py-3 px-4">{o?.products?.length}</td>
@@ -64,22 +78,39 @@ const Orders = () => {
 
               {/* Product List */}
               <div className="space-y-4 mt-4">
-                {o?.products?.map((p) => (
-                  <div key={p._id} className="flex items-center bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
-                    <div className="w-1/4">
-                      <img
-                        src={`/api/v1/product/product-photo/${p._id}`}
-                        alt={p.name}
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
+                {o?.products?.map((p) => {
+                  const imageUrl = `http://localhost:4000/api/v1/product/product-photo/${p._id}`;
+                  return (
+                    <div
+                      key={p._id}
+                      className="flex items-center bg-white border border-gray-300 rounded-lg p-4 shadow-sm hover:shadow-md transition"
+                    >
+                      {/* Product Image */}
+                      <div className="w-24 h-24 relative">
+                        <Image
+                          src={imageUrl}
+                          alt={p.name}
+                          fill
+                          className="object-cover rounded-lg"
+                          onError={(e) => {
+                            e.currentTarget.src = "/fallback.png"; // replace with your fallback image
+                          }}
+                        />
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="w-3/4 pl-4">
+                        <p className="font-semibold text-lg">{p.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {p.description?.substring(0, 50)}...
+                        </p>
+                        <p className="text-lg text-blue-600 font-medium">
+                          Price: ₹{p.price}
+                        </p>
+                      </div>
                     </div>
-                    <div className="w-3/4 pl-4">
-                      <p className="font-semibold text-lg">{p.name}</p>
-                      <p className="text-sm text-gray-600">{p.description.substring(0, 50)}...</p>
-                      <p className="text-lg text-blue-600 font-medium">Price: ${p.price}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

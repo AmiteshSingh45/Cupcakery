@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useCart } from "../../Context/cart";
 import { useAuth } from "../../Context/auth";
 import { useRouter } from "next/navigation";
 import { FaTrash } from "react-icons/fa";
+import Image from "next/image";
 
 const CartPage = () => {
   const paymentHandler = async (e, amount) => {
@@ -15,7 +16,7 @@ const CartPage = () => {
       const response = await fetch("http://localhost:4000/api/v1/payment/create-order", {
         method: "POST",
         body: JSON.stringify({
-          amount: amount, // ✅ in rupees, sent to backend
+          amount: amount,
           currency: "INR",
           receipt: receiptId,
         }),
@@ -32,12 +33,11 @@ const CartPage = () => {
       const order = await response.json();
       console.log("Order Created: ", order);
 
-      // ⚠️ IMPORTANT FIX: Pass the amount to Razorpay in paise
-      const razorpayAmount = order.amount * 100; // Multiply by 100
+      const razorpayAmount = order.amount * 100; // paise conversion
 
       const options = {
         key: "rzp_test_s7445STXOihmYb",
-        amount: razorpayAmount, // ✅ Use the converted amount in paise
+        amount: razorpayAmount,
         currency: order.currency,
         name: "Acme Corp",
         description: "Test Transaction",
@@ -51,7 +51,7 @@ const CartPage = () => {
             orderId: response.razorpay_order_id,
             paymentId: response.razorpay_payment_id,
             signature: response.razorpay_signature,
-            amount: amount, // Pass the original rupee amount
+            amount: amount,
             orderItems: cartArray,
             userShipping: auth.user,
             orderDate: new Date().toISOString(),
@@ -114,7 +114,8 @@ const CartPage = () => {
     };
   }, []);
 
-  const cartArray = Array.isArray(cart) ? cart : [];
+  // ✅ Fix: useMemo to prevent redefinition on every render
+  const cartArray = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
 
   const totalPrice = () => {
     return cartArray.reduce((total, item) => total + item.price, 0);
@@ -149,14 +150,19 @@ const CartPage = () => {
                   key={`${p._id}-${index}`}
                   className="bg-white shadow-sm rounded-lg p-6 flex gap-6 mb-4 hover:shadow-md transition-shadow duration-200 border border-gray-100"
                 >
-                  <img
+                  {/* ✅ Replaced <img> with next/image */}
+                  <Image
                     src={`http://localhost:4000/api/v1/product/product-photo/${p._id}`}
                     alt={p.name}
+                    width={112}
+                    height={112}
                     className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-md border border-gray-200"
                   />
                   <div className="flex-1">
                     <h5 className="text-xl font-semibold text-gray-800">{p.name}</h5>
-                    <p className="text-gray-600 text-sm mt-1">{p.description.substring(0, 50)}...</p>
+                    <p className="text-gray-600 text-sm mt-1">
+                      {p.description.substring(0, 50)}...
+                    </p>
                     <p className="text-lg font-semibold text-gray-900 mt-2">₹{p.price}</p>
                   </div>
 

@@ -6,6 +6,8 @@ import { useAuth } from "../../../../Context/auth";
 import moment from "moment";
 import { Select } from "antd";
 import AdminMenu from "../../../../components/Adminmenu";
+import Image from "next/image";
+
 const { Option } = Select;
 
 const AdminOrders = () => {
@@ -104,20 +106,26 @@ const AdminOrders = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {order?.products?.map((product) => {
                   const imageUrl = `http://localhost:4000/api/v1/product/product-photo/${product._id}`;
+                  const [imgSrc, setImgSrc] = useState(imageUrl);
+
                   return (
                     <div
                       key={product._id}
                       className="flex items-center bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition duration-300"
                     >
-                      <img
-                        src={imageUrl}
+                      <Image
+                        src={imgSrc}
                         alt={product.name}
+                        width={64} // Tailwind w-16 = 64px
+                        height={64} // Tailwind h-16 = 64px
                         className="w-16 h-16 object-cover rounded-md"
-                        onError={(e) => (e.target.src = "/path/to/fallback-image.jpg")}
+                        onError={() => setImgSrc("/fallback-image.jpg")}
                       />
                       <div className="ml-4">
                         <p className="font-semibold text-gray-900">{product.name}</p>
-                        <p className="text-gray-600">{product.description.substring(0, 30)}...</p>
+                        <p className="text-gray-600">
+                          {product.description.substring(0, 30)}...
+                        </p>
                         <p className="text-gray-800 font-bold">₹{product.price}</p>
                       </div>
                     </div>

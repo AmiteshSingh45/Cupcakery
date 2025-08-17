@@ -11,7 +11,9 @@ const Contact = () => {
       {/* Contact Details Section */}
       <div className="bg-gray-100 shadow-lg rounded-lg p-8 mt-6 w-full max-w-3xl border border-gray-300">
         <h2 className="text-2xl font-semibold text-center text-pink-500">Our Cafes</h2>
-        <p className="text-lg text-center mt-2 text-gray-700">Parle Point, Surat, Gujarat, India</p>
+        <p className="text-lg text-center mt-2 text-gray-700">
+          Parle Point, Surat, Gujarat, India
+        </p>
 
         <div className="mt-6">
           <h3 className="text-xl font-medium text-purple-600">📞 Call Us</h3>
@@ -20,16 +22,27 @@ const Contact = () => {
 
         <div className="mt-6">
           <h3 className="text-xl font-medium text-purple-600">📩 Email Us</h3>
-          <p className="text-gray-600">feedback@Bindi'sCupcakery.com</p>
+          {/* ✅ Escaped apostrophe */}
+          <p className="text-gray-600">feedback@Bindi&apos;sCupcakery.com</p>
         </div>
 
         <div className="mt-6 text-center">
           <h3 className="text-xl font-medium text-purple-600">📢 Follow Us</h3>
           <div className="flex justify-center gap-4 mt-2">
-            <a href="https://www.instagram.com/bindis_cupcakery" target="_blank" className="text-pink-500 hover:text-pink-700 transition duration-300">
+            <a
+              href="https://www.instagram.com/bindis_cupcakery"
+              target="_blank"
+              rel="noopener noreferrer" // ✅ security fix
+              className="text-pink-500 hover:text-pink-700 transition duration-300"
+            >
               Instagram
             </a>
-            <a href="https://www.facebook.com/bindi.malji" target="_blank" className="text-blue-500 hover:text-blue-700 transition duration-300">
+            <a
+              href="https://www.facebook.com/bindi.malji"
+              target="_blank"
+              rel="noopener noreferrer" // ✅ security fix
+              className="text-blue-500 hover:text-blue-700 transition duration-300"
+            >
               Facebook
             </a>
           </div>
