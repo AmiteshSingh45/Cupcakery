@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-      domains: ["localhost"], // Allow images from localhost
+      domains: ["localhost","quickchart.io"], // Allow images from localhost
     },
   };
   
