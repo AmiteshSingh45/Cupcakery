@@ -46,8 +46,6 @@ const Navbar = () => {
         setUserMenuOpen(false);
       }
     };
-
-    // ✅ use `click` instead of `mousedown`
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
@@ -57,20 +55,18 @@ const Navbar = () => {
   return (
     <nav className="bg-white text-black shadow-md sticky top-0 z-50">
       <div className="flex justify-between items-center px-6 h-20 relative">
-        
         {/* Left Side: Logo */}
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo.jpg" alt="Bindi's Cupcakery" width={200} height={20} className="rounded-full" />
         </Link>
 
         {/* Center: Search Bar */}
-        <div className="relative flex-1 max-w-xs mx-4">
+        <div className="relative flex-1 max-w-xs mx-4 hidden md:block">
           <input
             type="text"
             placeholder="Search"
             className="px-4 py-2 pr-10 text-black border rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 w-full"
           />
-          
           <Image
             src="/search.png"
             alt="Search Icon"
@@ -81,16 +77,21 @@ const Navbar = () => {
         </div>
 
         {/* Right Side: Hamburger Menu (Mobile) */}
-        <button className="md:hidden text-2xl" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
+        <button
+          className="md:hidden text-2xl"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? "✖" : "☰"}
+        </button>
 
         {/* Desktop Navigation */}
         <ul className="hidden md:flex items-center gap-6">
           <li className="relative" ref={collectionsRef}>
-            <span 
+            <span
               onClick={(e) => {
-                e.stopPropagation(); // ✅ prevent instant close
+                e.stopPropagation();
                 setCollectionsOpen(!collectionsOpen);
-              }} 
+              }}
               className="cursor-pointer hover:text-purple-500"
             >
               All Collections ▼
@@ -125,11 +126,11 @@ const Navbar = () => {
             </>
           ) : (
             <li className="relative" ref={userMenuRef}>
-              <span 
+              <span
                 onClick={(e) => {
-                  e.stopPropagation(); // ✅ same for user menu
+                  e.stopPropagation();
                   setUserMenuOpen(!userMenuOpen);
-                }} 
+                }}
                 className="cursor-pointer hover:text-purple-500"
               >
                 {auth?.user?.name} ▼
@@ -150,6 +151,65 @@ const Navbar = () => {
           )}
         </ul>
       </div>
+
+      {/* ✅ Mobile Dropdown Menu */}
+      {menuOpen && (
+        <div className="md:hidden bg-white border-t shadow-lg px-6 py-4 space-y-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search"
+              className="px-4 py-2 pr-10 text-black border rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 w-full"
+            />
+            <Image
+              src="/search.png"
+              alt="Search Icon"
+              width={20}
+              height={20}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2"
+            />
+          </div>
+
+          <Link href="/" onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">Home</Link>
+          <Link href="/About_Us" onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">About Us</Link>
+          <Link href="/Contact_Us" onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">Contact Us</Link>
+          
+          <div>
+            <span className="font-semibold">Collections</span>
+            <ul className="mt-2 space-y-2">
+              {categories?.length > 0 &&
+                categories.map((c) => (
+                  <li key={c.slug}>
+                    <Link href={`/category/${c.slug}`} onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">
+                      {c.name}
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          <Link href="/cart" onClick={() => setMenuOpen(false)} className="block relative">
+            🛒 Cart
+            {cartCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+
+          {!isAuthenticated ? (
+            <>
+              <Link href="/Register" onClick={() => setMenuOpen(false)} className="block bg-purple-500 text-white px-5 py-2 rounded-lg text-center hover:bg-purple-600">Register</Link>
+              <Link href="/Login" onClick={() => setMenuOpen(false)} className="block bg-purple-500 text-white px-5 py-2 rounded-lg text-center hover:bg-purple-600">Login</Link>
+            </>
+          ) : (
+            <>
+              <Link href={`/dashboard/${auth?.user?.role === 1 ? "admin" : "user"}`} onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">Dashboard</Link>
+              <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="block w-full text-left text-red-600 hover:bg-red-100 px-4 py-2">Logout</button>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 };
