@@ -18,7 +18,7 @@ const ProductDetail = () => {
 
       try {
         const res = await fetch(
-          `http://localhost:4000/api/v1/product/get-product/${slug}`,
+          `https://cupcakery-backend.onrender.com/api/v1/product/get-product/${slug}`,
           { cache: "no-store" }
         );
         const data = await res.json();
@@ -68,7 +68,7 @@ const ProductDetail = () => {
           {/* Product Image Section */}
           <div className="p-6 flex justify-center items-center bg-gray-100">
             <Image
-              src={`http://localhost:4000/api/v1/product/product-photo/${product._id}`}
+              src={`https://cupcakery-backend.onrender.com/api/v1/product/product-photo/${product._id}`}
               alt={product.name}
               width={450}
               height={450}

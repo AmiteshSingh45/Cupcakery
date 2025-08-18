@@ -44,7 +44,7 @@ const CreateProduct = () => {
 
       try {
         const { data } = await axios.get(
-          "http://localhost:4000/api/v1/category/get-category",
+          "https://cupcakery-backend.onrender.com/api/v1/category/get-category",
           { headers: { Authorization: `Bearer ${token}` } }
         );
 

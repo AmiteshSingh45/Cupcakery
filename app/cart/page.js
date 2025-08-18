@@ -13,7 +13,7 @@ const CartPage = () => {
     const receiptId = "qwsaq1";
 
     try {
-      const response = await fetch("http://localhost:4000/api/v1/payment/create-order", {
+      const response = await fetch("https://cupcakery-backend.onrender.com/api/v1/payment/create-order", {
         method: "POST",
         body: JSON.stringify({
           amount: amount,

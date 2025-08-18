@@ -18,7 +18,7 @@ const CategoryPage = () => {
 
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/v1/product/product-category/${slug}`);
+        const res = await fetch(`https://cupcakery-backend.onrender.com/api/v1/product/product-category/${slug}`);
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
         setProducts(data.products);
