@@ -57,7 +57,7 @@ const CartPage = () => {
             orderDate: new Date().toISOString(),
           };
 
-          const saveOrderRes = await fetch("http://localhost:4000/api/v1/payment/verify-payment", {
+          const saveOrderRes = await fetch("https://cupcakery-backend.onrender.com/api/v1/payment/verify-payment", {
             method: "POST",
             body: JSON.stringify(orderDetails),
             headers: {
@@ -152,7 +152,7 @@ const CartPage = () => {
                 >
                   {/* ✅ Replaced <img> with next/image */}
                   <Image
-                    src={`http://localhost:4000/api/v1/product/product-photo/${p._id}`}
+                    src={`https://cupcakery-backend.onrender.com/api/v1/product/product-photo/${p._id}`}
                     alt={p.name}
                     width={112}
                     height={112}

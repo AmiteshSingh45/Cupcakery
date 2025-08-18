@@ -11,7 +11,7 @@ export default function useCategory() {
       try {
         if (typeof window !== "undefined") { // Prevent SSR execution
           const { data } = await axios.get(
-            `http://localhost:4000/api/v1/category/get-category`
+            `https://cupcakery-backend.onrender.com/api/v1/category/get-category`
           );
           // Ensure data.category is an array before setting state
           if (Array.isArray(data?.category)) {
