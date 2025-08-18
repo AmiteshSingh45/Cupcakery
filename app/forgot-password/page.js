@@ -15,7 +15,7 @@ const ForgotPassword = () => {
   // Request OTP
   const requestOtp = async () => {
     try {
-      const res = await axios.post("http://localhost:4000/api/v1/auth/request-otp", { email });
+      const res = await axios.post("https://cupcakery-backend.onrender.com/api/v1/auth/request-otp", { email });
       if (res.data.success) {
         toast.success("OTP sent to your email/phone");
         setOtpSent(true);
@@ -31,7 +31,7 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:4000/api/v1/auth/verify-otp", {
+      const res = await axios.post("https://cupcakery-backend.onrender.com/api/v1/auth/verify-otp", {
         email,
         otp,
         newPassword,

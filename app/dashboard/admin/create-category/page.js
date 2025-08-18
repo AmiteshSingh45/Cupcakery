@@ -29,7 +29,7 @@ const CreateCategory = () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:4000/api/v1/category/create-category",
+        "https://cupcakery-backend.onrender.com/api/v1/category/create-category",
         { name },
         { headers: { Authorization: `Bearer ${token}` } }
       );

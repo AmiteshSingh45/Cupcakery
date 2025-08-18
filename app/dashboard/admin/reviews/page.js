@@ -8,7 +8,7 @@ const AdminReviews = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/v1/reviews/admin/reviews")
+    fetch("https://cupcakery-backend.onrender.com/api/v1/reviews/admin/reviews")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch reviews");
@@ -29,7 +29,7 @@ const AdminReviews = () => {
   const handleApprove = async (reviewId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/v1/reviews/admin/reviews/approve/${reviewId}`,
+        `https://cupcakery-backend.onrender.com/api/v1/reviews/admin/reviews/approve/${reviewId}`,
         { method: "PUT" }
       );
       if (response.ok) {
@@ -47,7 +47,7 @@ const AdminReviews = () => {
   const handleFeature = async (reviewId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/v1/reviews/admin/reviews/feature/${reviewId}`,
+        `https://cupcakery-backend.onrender.com/api/v1/reviews/admin/reviews/feature/${reviewId}`,
         { method: "PUT" }
       );
       if (response.ok) {

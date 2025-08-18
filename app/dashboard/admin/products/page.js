@@ -23,7 +23,7 @@ const Products = () => {
     if (!token) return; // wait until token is loaded
     try {
       const { data } = await axios.get(
-        "http://localhost:4000/api/v1/product/get-product",
+        "https://cupcakery-backend.onrender.com/api/v1/product/get-product",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -63,7 +63,7 @@ const Products = () => {
               >
                 <div className="card bg-gray-100 border border-gray-300 rounded-lg shadow-md p-4 hover:shadow-lg transition duration-300 cursor-pointer">
                   <Image
-                    src={`http://localhost:4000/api/v1/product/product-photo/${p._id}`}
+                    src={`https://cupcakery-backend.onrender.com//api/v1/product/product-photo/${p._id}`}
                     alt={p.name}
                     width={400}
                     height={224}

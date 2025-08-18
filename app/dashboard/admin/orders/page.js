@@ -26,7 +26,7 @@ const AdminOrders = () => {
 
   const getOrders = async () => {
     try {
-      const { data } = await axios.get("http://localhost:4000/api/v1/auth/all-orders");
+      const { data } = await axios.get("https://cupcakery-backend.onrender.com//api/v1/auth/all-orders");
       setOrders(data);
 
       // Initialize image sources for products
@@ -34,7 +34,7 @@ const AdminOrders = () => {
       data.forEach((order) => {
         order.products.forEach((product) => {
           initialSources[product._id] =
-            `http://localhost:4000/api/v1/product/product-photo/${product._id}`;
+            `https://cupcakery-backend.onrender.com/api/v1/product/product-photo/${product._id}`;
         });
       });
       setImgSources(initialSources);
