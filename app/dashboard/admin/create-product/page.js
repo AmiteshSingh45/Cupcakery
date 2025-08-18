@@ -83,7 +83,7 @@ const CreateProduct = () => {
       productData.append("shipping", shipping);
 
       const { data } = await axios.post(
-        "http://localhost:4000/api/v1/product/create-product",
+        "https://cupcakery-backend.onrender.com/api/v1/product/create-product",
         productData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
