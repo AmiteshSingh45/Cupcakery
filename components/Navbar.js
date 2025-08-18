@@ -18,7 +18,7 @@ const Navbar = () => {
   const collectionsRef = useRef(null);
   const ordersRef = useRef(null);
   const userMenuRef = useRef(null);
-  
+
   const categories = useCategory();
   const [auth, login, logout] = useAuth();
   const router = useRouter();
@@ -47,9 +47,10 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    // ✅ use `click` instead of `mousedown`
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
@@ -70,13 +71,13 @@ const Navbar = () => {
             className="px-4 py-2 pr-10 text-black border rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400 w-full"
           />
           
-<Image
-  src="/search.png"
-  alt="Search Icon"
-  width={20}
-  height={20}
-  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-/>
+          <Image
+            src="/search.png"
+            alt="Search Icon"
+            width={20}
+            height={20}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+          />
         </div>
 
         {/* Right Side: Hamburger Menu (Mobile) */}
@@ -85,16 +86,23 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <ul className="hidden md:flex items-center gap-6">
           <li className="relative" ref={collectionsRef}>
-            <span onClick={() => setCollectionsOpen(!collectionsOpen)} className="cursor-pointer hover:text-purple-500">
+            <span 
+              onClick={(e) => {
+                e.stopPropagation(); // ✅ prevent instant close
+                setCollectionsOpen(!collectionsOpen);
+              }} 
+              className="cursor-pointer hover:text-purple-500"
+            >
               All Collections ▼
             </span>
             {collectionsOpen && (
-              <ul className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-50 grid grid-cols-2 gap-2 p-2 border border-gray-200">
-                {categories.map((c) => (
-                  <li key={c.slug} className="px-4 py-2 hover:bg-gray-100 transition-all">
-                    <Link href={`/category/${c.slug}`}>{c.name}</Link>
-                  </li>
-                ))}
+              <ul className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-[9999] grid grid-cols-2 gap-2 p-2 border border-gray-200">
+                {categories?.length > 0 &&
+                  categories.map((c) => (
+                    <li key={c.slug} className="px-4 py-2 hover:bg-gray-100 transition-all">
+                      <Link href={`/category/${c.slug}`}>{c.name}</Link>
+                    </li>
+                  ))}
               </ul>
             )}
           </li>
@@ -117,11 +125,17 @@ const Navbar = () => {
             </>
           ) : (
             <li className="relative" ref={userMenuRef}>
-              <span onClick={() => setUserMenuOpen(!userMenuOpen)} className="cursor-pointer hover:text-purple-500">
+              <span 
+                onClick={(e) => {
+                  e.stopPropagation(); // ✅ same for user menu
+                  setUserMenuOpen(!userMenuOpen);
+                }} 
+                className="cursor-pointer hover:text-purple-500"
+              >
                 {auth?.user?.name} ▼
               </span>
               {userMenuOpen && (
-                <ul className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <ul className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]">
                   <li className="px-4 py-2 hover:bg-gray-100">
                     <Link href={`/dashboard/${auth?.user?.role === 1 ? "admin" : "user"}`}>Dashboard</Link>
                   </li>
