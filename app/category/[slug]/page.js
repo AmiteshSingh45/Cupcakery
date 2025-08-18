@@ -64,7 +64,7 @@ const CategoryPage = () => {
         {products.map((product) => (
           <div key={product._id} className="bg-white p-4 rounded-lg shadow-lg">
             <Image
-  src={`http://localhost:4000/api/v1/product/product-photo/${product._id}`}
+  src={`https://cupcakery-backend.onrender.com/api/v1/product/product-photo/${product._id}`}
   alt={product.name}
   width={500}   // ✅ required in Next.js Image
   height={200}  // ✅ required in Next.js Image
