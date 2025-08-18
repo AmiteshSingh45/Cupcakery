@@ -111,9 +111,9 @@
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mt-10">
       {[
         { name: "Cakes", img: "/hpcakeproduct.jpeg", link: "/category/cakes" },
-        { name: "Brownies", img: "/hpbrowniesproduct.jfif", link: "/category/brownies" },
-        { name: "Cookies", img: "/hpcookiesproduct1.jfif", link: "/category/cookies" },
-        { name: "Truffle", img: "/hptruffleproduct.jfif", link: "/category/truffle" },
+        { name: "Brownies", img: "/hpcakeproduct.jpeg", link: "/category/cakes" },
+        { name: "Cookies", img: "/hpcakeproduct.jpeg", link: "/category/cakes" },
+        { name: "Truffle", img: "/hpcakeproduct.jpeg", link: "/category/cakes" },
       ].map((item, index) => (
         <Link key={index} href={item.link} className="group relative block rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow">
           <Image

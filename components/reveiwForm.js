@@ -30,7 +30,7 @@ const ReviewForm = () => {
     console.log("Submitting Review Data:", reviewData);
 
     try {
-      const response = await fetch("http://localhost:4000/api/v1/reviews/submit", {
+      const response = await fetch("https://cupcakery-backend.onrender.com/api/v1/reviews/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reviewData),
