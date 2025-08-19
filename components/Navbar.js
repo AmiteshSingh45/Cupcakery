@@ -173,20 +173,7 @@ const Navbar = () => {
           <Link href="/" onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">Home</Link>
           <Link href="/About_Us" onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">About Us</Link>
           <Link href="/Contact_Us" onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">Contact Us</Link>
-          
-          <div>
-            <span className="font-semibold">Collections</span>
-            <ul className="mt-2 space-y-2">
-              {categories?.length > 0 &&
-                categories.map((c) => (
-                  <li key={c.slug}>
-                    <Link href={`/category/${c.slug}`} onClick={() => setMenuOpen(false)} className="block hover:text-purple-500">
-                      {c.name}
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          </div>
+  
 
           <Link href="/cart" onClick={() => setMenuOpen(false)} className="block relative">
             🛒 Cart
