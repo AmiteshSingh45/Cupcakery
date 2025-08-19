@@ -8,7 +8,7 @@
 
   export default function Home() {
     const [selectedImage, setSelectedImage] = useState(0);
-    const images = ["/hpcakefinal.jfif", "/hp_img2.jpg", "/hp_img3.jpg", "/rose-pistachio-cranberry-truffle.jpg"];
+    const images = ["/hpcakefinal.jpg", "/hp_img2.jpg", "/hp_img3.jpg", "/hp_img4.jpg"];
 
     useEffect(() => {
       const interval = setInterval(() => {
