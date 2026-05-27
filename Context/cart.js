@@ -17,12 +17,11 @@ const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Update localStorage whenever cart changes
+  // Update localStorage whenever cart changes (including when empty)
   useEffect(() => {
-    if (cart.length > 0) {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    }
+    localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
+
 
   return (
     <CartContext.Provider value={{ cart, setCart }}>

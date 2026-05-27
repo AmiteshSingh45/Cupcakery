@@ -5,6 +5,7 @@ import axios from "axios";
 import { useAuth } from "../../../../Context/auth";
 import moment from "moment";
 import Image from "next/image";
+import { BACKEND } from "@/lib/api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -12,7 +13,9 @@ const Orders = () => {
 
   const getOrders = async () => {
     try {
-      const { data } = await axios.get("https://cupcakery-backend.onrender.com/api/v1/auth/orders");
+      const { data } = await axios.get(`${BACKEND}/api/v1/auth/orders`, {
+        headers: { Authorization: `Bearer ${auth?.token}` },
+      });
       setOrders(data);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -79,7 +82,7 @@ const Orders = () => {
               {/* Product List */}
               <div className="space-y-4 mt-4">
                 {o?.products?.map((p) => {
-                  const imageUrl = `https://cupcakery-backend.onrender.com/api/v1/product/product-photo/${p._id}`;
+                  const imageUrl = `${BACKEND}/api/v1/product/product-photo/${p._id}`;
                   return (
                     <div
                       key={p._id}

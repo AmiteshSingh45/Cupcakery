@@ -239,10 +239,32 @@ export const productCountController = async (req, res) => {
   }
 };
 
-// product list base on page
+// product list — supports ?featured=true, ?sort=newest, ?limit=N, ?category=slug
 export const productListController = async (req, res) => {
   try {
-    const products = await productModel.find({}).select("-photo").sort({ createdAt: -1 });
+    const { featured, sort, limit, category } = req.query;
+    let query = {};
+    let sortOption = { createdAt: -1 };
+
+    if (featured === "true") query.featured = true;
+    if (category) {
+      const cat = await categoryModel.findOne({ slug: category });
+      if (cat) query.category = cat._id;
+    }
+    if (sort === "price-asc") sortOption = { price: 1 };
+    if (sort === "price-desc") sortOption = { price: -1 };
+
+    const limitNum = parseInt(limit) || 0; // 0 = no limit
+
+    let dbQuery = productModel
+      .find(query)
+      .select("-photo")
+      .populate("category")
+      .sort(sortOption);
+
+    if (limitNum > 0) dbQuery = dbQuery.limit(limitNum);
+
+    const products = await dbQuery;
 
     res.status(200).send({
       success: true,
@@ -257,6 +279,66 @@ export const productListController = async (req, res) => {
     });
   }
 };
+
+// ✅ Featured products — for homepage Best Sellers
+export const getFeaturedProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 6;
+    const products = await productModel
+      .find({ featured: true })
+      .select("-photo")
+      .populate("category")
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    // Fallback: if no featured products, return newest
+    if (products.length === 0) {
+      const fallback = await productModel
+        .find({})
+        .select("-photo")
+        .populate("category")
+        .sort({ createdAt: -1 })
+        .limit(limit);
+      return res.status(200).send({ success: true, products: fallback });
+    }
+
+    res.status(200).send({ success: true, products });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: "Error fetching featured products", error });
+  }
+};
+
+// ✅ Newest products — for homepage New Arrivals
+export const getNewestProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 8;
+    const products = await productModel
+      .find({})
+      .select("-photo")
+      .populate("category")
+      .sort({ createdAt: -1 })
+      .limit(limit);
+    res.status(200).send({ success: true, products });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: "Error fetching newest products", error });
+  }
+};
+
+// ✅ Toggle featured status — admin only
+export const toggleFeaturedController = async (req, res) => {
+  try {
+    const product = await productModel.findById(req.params.pid);
+    if (!product) return res.status(404).send({ success: false, message: "Product not found" });
+    product.featured = !product.featured;
+    await product.save();
+    res.status(200).send({ success: true, message: `Product ${product.featured ? "marked as featured" : "unmarked"}`, product });
+  } catch (error) {
+    res.status(500).send({ success: false, message: "Error toggling featured", error });
+  }
+};
+
 
 
 // search product

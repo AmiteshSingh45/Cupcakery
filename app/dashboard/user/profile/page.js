@@ -5,9 +5,10 @@ import UserMenu from "../../../../components/Usermenu";
 import toast from "react-hot-toast";
 import axios from "axios";
 import Head from "next/head";
+import { BACKEND } from "@/lib/api";
 
 const Profile = () => {
-  const [auth, setAuth] = useAuth();
+  const [auth, , , setAuth] = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,12 +28,14 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.put("https://cupcakery-backend.onrender.com:/api/v1/auth/profile", {
+      const { data } = await axios.put(`${BACKEND}/api/v1/auth/profile`, {
         name,
         email,
         password,
         phone,
         address,
+      }, {
+        headers: { Authorization: `Bearer ${auth?.token}` },
       });
       if (data?.error) {
         toast.error(data?.error);

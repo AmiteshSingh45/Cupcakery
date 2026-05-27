@@ -1,8 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-    domains: ['cupcakery.vercel.app', 'cupcakery-backend.onrender.com'],
+  images: {
+    remotePatterns: [
+      // Local backend (development)
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "4000",
+      },
+      // Production backend (Render)
+      {
+        protocol: "https",
+        hostname: "cupcakery-backend.onrender.com",
+      },
+      // QR Code generation service
+      {
+        protocol: "https",
+        hostname: "quickchart.io",
+      },
+    ],
   },
-  };
-  
-  export default nextConfig;
+};
+
+export default nextConfig;

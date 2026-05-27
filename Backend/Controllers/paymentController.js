@@ -88,3 +88,75 @@ export const verifyPayment = async (req, res) => {
     res.status(500).json({ success: false, message: "Error verifying payment" });
   }
 };
+
+
+// ✅ Get orders for the logged-in user
+export const getUserOrders = async (req, res) => {
+  try {
+    const orders = await Payment.find({ userId: req.user._id })
+      .populate("orderItems")
+      .sort({ createdAt: -1 });
+
+    // Shape to match frontend expectations
+    const shaped = orders.map((o) => ({
+      _id: o._id,
+      status: o.status || "Processing",
+      buyer: { name: o.userShipping?.name },
+      payment: { success: o.payStatus === "paid" },
+      products: o.orderItems || [],
+      createdAt: o.createdAt,
+      amount: o.amount,
+    }));
+
+    res.json(shaped);
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ success: false, message: "Error fetching orders" });
+  }
+};
+
+
+// ✅ Get ALL orders — admin only
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Payment.find({})
+      .populate("orderItems")
+      .sort({ createdAt: -1 });
+
+    const shaped = orders.map((o) => ({
+      _id: o._id,
+      status: o.status || "Processing",
+      buyer: { name: o.userShipping?.name },
+      payment: { success: o.payStatus === "paid" },
+      products: o.orderItems || [],
+      createdAt: o.createdAt,
+      amount: o.amount,
+    }));
+
+    res.json(shaped);
+  } catch (error) {
+    console.error("Error fetching all orders:", error);
+    res.status(500).json({ success: false, message: "Error fetching all orders" });
+  }
+};
+
+
+// ✅ Update order status — admin only
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    const updated = await Payment.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+    res.json({ success: true, message: "Status updated", order: updated });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ success: false, message: "Error updating order status" });
+  }
+};

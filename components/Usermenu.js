@@ -1,26 +1,54 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import { FiUser, FiShoppingBag, FiHome } from "react-icons/fi";
+
+const menuItems = [
+  { name: "Overview",  path: "/dashboard/user",         icon: <FiHome size={17} /> },
+  { name: "Profile",   path: "/dashboard/user/profile", icon: <FiUser size={17} /> },
+  { name: "My Orders", path: "/dashboard/user/orders",  icon: <FiShoppingBag size={17} /> },
+];
 
 const UserMenu = () => {
+  const pathname = usePathname();
+
   return (
-    <div className="bg-gray-100 text-gray-900 p-6 rounded-lg shadow-md">
-      <div className="text-center">
-        <h4 className="text-xl text-black font-semibold mb-4">Dashboard</h4>
-        <div className="space-y-3">
-          <Link
-            href="/dashboard/user/profile"
-            className="block px-4 py-2 bg-white text-blue-600 font-medium rounded-lg shadow-sm border border-gray-300 hover:bg-blue-600 hover:text-white transition duration-300"
+    <nav className="space-y-1">
+      {menuItems.map((item, i) => {
+        const active = pathname === item.path;
+        return (
+          <motion.div
+            key={item.path}
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.07, duration: 0.35 }}
           >
-            Profile
-          </Link>
-          <Link
-            href="/dashboard/user/orders"
-            className="block px-4 py-2 bg-white text-blue-600 font-medium rounded-lg shadow-sm border border-gray-300 hover:bg-blue-600 hover:text-white transition duration-300"
-          >
-            Orders
-          </Link>
-        </div>
-      </div>
-    </div>
+            <Link
+              href={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-body font-medium
+                          transition-all duration-300 group ${
+                active
+                  ? "bg-gold text-espresso-900 shadow-gold/30 shadow-md"
+                  : "text-cream/70 hover:bg-white/8 hover:text-cream"
+              }`}
+            >
+              <span className={`flex-shrink-0 transition-transform duration-300 ${active ? "" : "group-hover:scale-110"}`}>
+                {item.icon}
+              </span>
+              <span>{item.name}</span>
+              {active && (
+                <motion.span
+                  layoutId="user-active-dot"
+                  className="ml-auto w-1.5 h-1.5 rounded-full bg-espresso-900/40"
+                />
+              )}
+            </Link>
+          </motion.div>
+        );
+      })}
+    </nav>
   );
 };
 

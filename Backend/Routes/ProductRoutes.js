@@ -11,6 +11,10 @@ import {
   productListController,
   searchProductController,
   CategoryWiseProduct,
+  realtedProductController,
+  getFeaturedProducts,
+  getNewestProducts,
+  toggleFeaturedController,
 } from "../Controllers/ProductController.js";
 import { isAdmin, requireSignIn } from "../Middlewares/AuthMiddleware.js";
 import formidable from "express-formidable";
@@ -43,8 +47,8 @@ router.get("/get-product/:slug", getSingleProductController);
 //get photo
 router.get("/product-photo/:pid", productPhotoController);
 
-//delete product
-router.delete("/product/:pid", deleteProductController);
+//delete product — MUST be protected: only admin can delete
+router.delete("/product/:pid", requireSignIn, isAdmin, deleteProductController);
 
 
 //filter product
@@ -60,13 +64,15 @@ router.get("/product-list", productListController);
 router.get("/search/:keyword", searchProductController);
 
 //category wise product
-router.get("/product-category/:slug",CategoryWiseProduct  );
+router.get("/product-category/:slug", CategoryWiseProduct);
 
+// ✅ Featured products — for homepage Best Sellers
+router.get("/featured", getFeaturedProducts);
 
-//payments routes
-//token
+// ✅ Newest products — for homepage New Arrivals
+router.get("/newest", getNewestProducts);
 
-
-
+// ✅ Toggle featured status — admin only
+router.patch("/toggle-featured/:pid", requireSignIn, isAdmin, toggleFeaturedController);
 
 export default router;

@@ -2,43 +2,38 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaThList, FaBoxOpen, FaUsers, FaClipboardList, FaChartBar, FaTag } from "react-icons/fa";
+import { adminNavGroups } from "@/components/admin/AdminShell";
 
-const AdminMenu = () => {
+export default function AdminMenu() {
   const pathname = usePathname();
 
-  const menuItems = [
-    { name: "Create Category", path: "/dashboard/admin/create-category", icon: <FaTag /> },
-    { name: "Create Product", path: "/dashboard/admin/create-product", icon: <FaBoxOpen /> },
-    { name: "Products", path: "/dashboard/admin/products", icon: <FaThList /> },
-    { name: "Orders", path: "/dashboard/admin/orders", icon: <FaClipboardList /> },
-    { name: "Users", path: "/dashboard/admin/users", icon: <FaUsers /> },
-    { name: "Review", path: "/dashboard/admin/reviews", icon: <FaChartBar /> },
-  ];
-
   return (
-    <div className="w-full max-w-xs mx-auto mt-6 p-5 bg-white shadow-lg rounded-lg border border-gray-200">
-      <h4 className="text-2xl font-bold text-center mb-4 text-gray-800">Admin Panel</h4>
-      <div className="flex flex-col space-y-2">
-        {menuItems.map((item) => (
-          <Link 
-            key={item.path} 
-            href={item.path} 
-            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-300 text-lg 
-              ${
-                pathname === item.path 
-                  ? "bg-blue-600 text-white font-semibold shadow-md" 
-                  : "bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-600"
-              }`
-            }
-          >
-            <span className="text-xl">{item.icon}</span>
-            <span>{item.name}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
+    <nav className="space-y-5">
+      {adminNavGroups.map((group) => (
+        <div key={group.label}>
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-cream/35">
+            {group.label}
+          </p>
+          <div className="space-y-1">
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                    active ? "bg-gold text-espresso-900 shadow-gold" : "text-cream/70 hover:bg-white/10 hover:text-cream"
+                  }`}
+                >
+                  <Icon size={17} />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
   );
-};
-
-export default AdminMenu;
+}

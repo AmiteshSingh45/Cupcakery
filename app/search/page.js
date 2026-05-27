@@ -1,52 +1,64 @@
-"use client"; // Ensures it's a client-side component
+"use client";
 
-import { useSearch } from "../../Context/search";
+import { Suspense, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { FiSearch } from "react-icons/fi";
+import ProductCard from "@/components/ProductCard";
+import { catalogProducts } from "@/lib/catalog";
 
-const Search = () => {
-  const { search } = useSearch();
+function SearchResults() {
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q") || "";
+
+  const results = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return [];
+    return catalogProducts.filter((product) =>
+      [product.name, product.description, product.category?.name, ...(product.tags || [])]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(normalized)
+    );
+  }, [query]);
 
   return (
-    <div className="container mx-auto py-10 px-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800">Search Results</h1>
-        <h6 className="text-lg text-gray-600 mt-2">
-          {search?.results.length < 1
-            ? "No Products Found"
-            : `Found ${search?.results.length} products`}
-        </h6>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-          {search?.results.map((p) => (
-            <div key={p._id} className="bg-white p-4 rounded-lg shadow-lg">
-              <div className="relative w-full h-40">
-                <Image
-                  src={`/api/v1/product/product-photo/${p._id}`}
-                  alt={p.name}
-                  fill
-                  className="object-cover rounded-md"
-                  unoptimized // ✅ Use this if images are coming from API without optimization
-                />
-              </div>
-              <h5 className="text-lg font-semibold mt-2">{p.name}</h5>
-              <p className="text-gray-600">{p.description.substring(0, 30)}...</p>
-              <p className="text-lg font-bold text-gray-800 mt-2">₹{p.price}</p>
-              <div className="flex gap-2 mt-4">
-                <Link href={`/product/${p._id}`} className="w-full">
-                  <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                    More Details
-                  </button>
-                </Link>
-                <button className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          ))}
+    <div className="min-h-screen bg-cream">
+      <section className="border-b border-cream-deep/60 bg-luxury-warm py-12">
+        <div className="section-container text-center">
+          <span className="section-label">Search</span>
+          <h1 className="section-title mt-2">{query ? `Results for "${query}"` : "Search the Bakery"}</h1>
+          <p className="section-subtitle mx-auto mt-3">
+            {query ? `${results.length} premium treats found.` : "Use the search in the navigation to find cakes, brownies, hampers, cookies, and more."}
+          </p>
         </div>
-      </div>
+      </section>
+
+      <section className="section-container py-10">
+        {results.length ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {results.map((product, index) => (
+              <ProductCard key={product._id} product={product} index={index} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[2rem] border border-cream-deep bg-white px-6 py-20 text-center shadow-card">
+            <FiSearch size={42} className="mx-auto mb-4 text-cream-deep" />
+            <h3 className="font-display text-2xl font-semibold text-espresso-900">No matching treats yet</h3>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-ink-muted">Try chocolate, hamper, cupcake, macaron, or browse the full menu.</p>
+            <Link href="/products" className="btn-luxury mt-6">View All Products</Link>
+          </div>
+        )}
+      </section>
     </div>
   );
-};
+}
 
-export default Search;
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-cream" />}>
+      <SearchResults />
+    </Suspense>
+  );
+}

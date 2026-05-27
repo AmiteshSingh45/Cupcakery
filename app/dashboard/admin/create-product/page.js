@@ -1,242 +1,263 @@
-"use client"; // ✅ Client Component
+"use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import axios from "axios";
-import { Select } from "antd";
-import Image from "next/image";
-import AdminMenu from "../../../../components/Adminmenu";
+import { FiImage, FiPlus, FiSave, FiTrash2, FiUploadCloud } from "react-icons/fi";
+import { AdminShell } from "@/components/admin/AdminShell";
+import { Panel } from "@/components/admin/AdminWidgets";
+import api from "@/lib/api";
+import { catalogCategories } from "@/lib/catalog";
 
-const { Option } = Select;
+const defaultForm = {
+  name: "",
+  shortDescription: "",
+  description: "",
+  price: "",
+  salePrice: "",
+  quantity: "",
+  sku: "",
+  category: "",
+  subcategory: "",
+  brand: "Bindi's Cupcakery",
+  tags: "",
+  ingredients: "",
+  nutrition: "",
+  allergens: "",
+  weight: "",
+  flavor: "",
+  status: "Active",
+  shipping: "1",
+  featured: false,
+  trending: false,
+  newArrival: false,
+  seoTitle: "",
+  seoDescription: "",
+};
 
-const CreateProduct = () => {
+function Field({ label, children }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-ink-muted">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function inputClass() {
+  return "h-12 w-full rounded-2xl border border-cream-deep bg-white px-4 text-sm text-espresso-900 outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20";
+}
+
+export default function CreateProductPage() {
   const router = useRouter();
+  const [form, setForm] = useState(defaultForm);
+  const [categories, setCategories] = useState(catalogCategories);
+  const [photos, setPhotos] = useState([]);
+  const [variants, setVariants] = useState([{ size: "Single", flavor: "", weight: "", price: "", stock: "" }]);
+  const [saving, setSaving] = useState(false);
 
-  const [categories, setCategories] = useState([]);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [shipping, setShipping] = useState("");
-  const [photo, setPhoto] = useState(null);
-  const [token, setToken] = useState(null);
-
-  // ✅ Get token from localStorage safely
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const auth = JSON.parse(localStorage.getItem("auth"));
-        setToken(auth?.token || null);
-      } catch {
-        setToken(null);
-      }
-    }
+    api.get("/api/v1/category/get-category", { timeout: 2500, noRetry: true })
+      .then(({ data }) => data?.category?.length && setCategories(data.category))
+      .catch(() => setCategories(catalogCategories));
   }, []);
 
-  // ✅ Fetch all categories
-  useEffect(() => {
-    let isMounted = true;
+  const previews = useMemo(() => photos.map((photo) => ({ name: photo.name, url: URL.createObjectURL(photo) })), [photos]);
 
-    const getAllCategory = async () => {
-      if (!token) return;
+  useEffect(() => () => previews.forEach((preview) => URL.revokeObjectURL(preview.url)), [previews]);
 
-      try {
-        const { data } = await axios.get(
-          "https://cupcakery-backend.onrender.com/api/v1/category/get-category",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+  const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const token = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("auth") || "{}")?.token : "";
 
-        if (data?.success && isMounted) setCategories(data?.category);
-        else if (isMounted) toast.error(data.message);
-      } catch {
-        if (isMounted) toast.error("Something went wrong while fetching categories.");
-      }
-    };
+  const handleCreate = async (event) => {
+    event.preventDefault();
+    if (!token) return toast.error("Please login as admin first.");
+    if (!form.name || !form.description || !form.price || !form.quantity || !form.category) {
+      return toast.error("Name, description, price, stock, and category are required.");
+    }
 
-    getAllCategory();
-
-    return () => (isMounted = false);
-  }, [token]);
-
-  // ✅ Revoke object URL on photo change/unmount
-  useEffect(() => {
-    return () => {
-      if (photo) URL.revokeObjectURL(photo);
-    };
-  }, [photo]);
-
-  // ✅ Handle product creation
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!token) return toast.error("Authentication failed. Please log in.");
-
+    setSaving(true);
     try {
       const productData = new FormData();
-      productData.append("name", name);
-      productData.append("description", description);
-      productData.append("price", price);
-      productData.append("quantity", quantity);
-      productData.append("photo", photo);
-      productData.append("category", category);
-      productData.append("shipping", shipping);
+      productData.append("name", form.name);
+      productData.append("description", `${form.shortDescription ? `${form.shortDescription}\n\n` : ""}${form.description}`);
+      productData.append("price", form.salePrice || form.price);
+      productData.append("quantity", form.quantity);
+      productData.append("category", form.category);
+      productData.append("shipping", form.shipping);
+      productData.append("featured", form.featured);
+      productData.append("tag", form.trending ? "Trending" : form.newArrival ? "New" : "");
+      if (photos[0]) productData.append("photo", photos[0]);
 
-      const { data } = await axios.post(
-        "https://cupcakery-backend.onrender.com/api/v1/product/create-product",
-        productData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const { data } = await api.post("/api/v1/product/create-product", productData, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+      });
 
       if (data?.success) {
-        toast.success("Product Created Successfully");
-        router.push("/dashboard/admin/products"); // ✅ SPA navigation
+        toast.success("Product created successfully");
+        router.push("/dashboard/admin/products");
       } else {
-        toast.error(data?.message);
+        toast.error(data?.message || "Could not create product");
       }
-    } catch {
-      toast.error("Something went wrong while creating the product.");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong while creating the product.");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 flex">
-      {/* Sidebar */}
-      <div className="w-1/4 p-6 bg-gray-100 min-h-screen shadow-md">
-        <AdminMenu />
-      </div>
+    <AdminShell title="Create Product" subtitle="Build a rich bakery product listing with merchandising, inventory, variants, and SEO metadata.">
+      <form onSubmit={handleCreate} className="grid gap-6 xl:grid-cols-[1fr_380px]">
+        <div className="space-y-6">
+          <Panel title="Product Information" subtitle="Core customer-facing details">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Product name">
+                <input className={inputClass()} value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="Belgian Chocolate Cloud Cupcake" />
+              </Field>
+              <Field label="SKU">
+                <input className={inputClass()} value={form.sku} onChange={(event) => update("sku", event.target.value)} placeholder="CUP-CHO-001" />
+              </Field>
+              <Field label="Short description">
+                <input className={inputClass()} value={form.shortDescription} onChange={(event) => update("shortDescription", event.target.value)} placeholder="Rich chocolate cupcake with ganache center" />
+              </Field>
+              <Field label="Brand">
+                <input className={inputClass()} value={form.brand} onChange={(event) => update("brand", event.target.value)} />
+              </Field>
+              <Field label="Full description">
+                <textarea className={`${inputClass()} min-h-36 py-3 md:col-span-2`} value={form.description} onChange={(event) => update("description", event.target.value)} placeholder="Describe texture, flavor, freshness, packaging, and serving guidance." />
+              </Field>
+            </div>
+          </Panel>
 
-      {/* Main Content */}
-      <div className="w-3/4 p-8">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">
-          Create Product
-        </h1>
-
-        <form
-          className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md"
-          onSubmit={handleCreate}
-        >
-          {/* Category Selection */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Category</label>
-            <Select
-              placeholder="Select a category"
-              size="large"
-              className="w-full border border-gray-300 rounded-md"
-              onChange={(value) => setCategory(value)}
-              value={category || undefined}
-            >
-              {categories?.map((c) => (
-                <Option key={c._id} value={c._id}>
-                  {c.name}
-                </Option>
+          <Panel title="Pricing & Inventory" subtitle="Price, sale price, stock, delivery, and inventory readiness">
+            <div className="grid gap-4 md:grid-cols-4">
+              {[
+                ["price", "Price"],
+                ["salePrice", "Sale price"],
+                ["quantity", "Stock"],
+                ["weight", "Weight"],
+              ].map(([key, label]) => (
+                <Field key={key} label={label}>
+                  <input type={key === "weight" ? "text" : "number"} className={inputClass()} value={form[key]} onChange={(event) => update(key, event.target.value)} />
+                </Field>
               ))}
-            </Select>
-          </div>
+              <Field label="Delivery availability">
+                <select className={inputClass()} value={form.shipping} onChange={(event) => update("shipping", event.target.value)}>
+                  <option value="1">Available</option>
+                  <option value="0">Pickup only</option>
+                </select>
+              </Field>
+              <Field label="Product status">
+                <select className={inputClass()} value={form.status} onChange={(event) => update("status", event.target.value)}>
+                  <option>Active</option>
+                  <option>Draft</option>
+                  <option>Archived</option>
+                  <option>Out of stock</option>
+                </select>
+              </Field>
+              <Field label="Flavor">
+                <input className={inputClass()} value={form.flavor} onChange={(event) => update("flavor", event.target.value)} placeholder="Chocolate, rose, mango..." />
+              </Field>
+              <Field label="Subcategory">
+                <input className={inputClass()} value={form.subcategory} onChange={(event) => update("subcategory", event.target.value)} placeholder="Mini cupcakes" />
+              </Field>
+            </div>
+          </Panel>
 
-          {/* Upload Photo */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Upload Photo</label>
-            <label className="w-full flex items-center justify-center py-3 border border-gray-300 rounded-md cursor-pointer bg-gray-100 hover:bg-gray-200">
-              {photo ? photo.name : "Choose an image"}
-              <input
-                type="file"
-                name="photo"
-                accept="image/*"
-                onChange={(e) => setPhoto(e.target.files[0])}
-                hidden
-              />
+          <Panel title="Variants" subtitle="Dynamic size, flavor, weight, pricing, and stock rows">
+            <div className="space-y-3">
+              {variants.map((variant, index) => (
+                <div key={index} className="grid gap-3 rounded-2xl bg-cream-warm p-3 md:grid-cols-5">
+                  {["size", "flavor", "weight", "price", "stock"].map((key) => (
+                    <input
+                      key={key}
+                      className={inputClass()}
+                      value={variant[key]}
+                      placeholder={key}
+                      onChange={(event) => setVariants((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: event.target.value } : item))}
+                    />
+                  ))}
+                </div>
+              ))}
+              <button type="button" onClick={() => setVariants((current) => [...current, { size: "", flavor: "", weight: "", price: "", stock: "" }])} className="inline-flex items-center gap-2 rounded-2xl border border-cream-deep px-4 py-3 text-sm font-bold text-espresso-900">
+                <FiPlus /> Add Variant
+              </button>
+            </div>
+          </Panel>
+
+          <Panel title="Product SEO" subtitle="Search engine metadata for product pages">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="SEO title"><input className={inputClass()} value={form.seoTitle} onChange={(event) => update("seoTitle", event.target.value)} /></Field>
+              <Field label="Tags"><input className={inputClass()} value={form.tags} onChange={(event) => update("tags", event.target.value)} placeholder="eggless, cupcake, chocolate" /></Field>
+              <Field label="SEO description"><textarea className={`${inputClass()} min-h-28 py-3 md:col-span-2`} value={form.seoDescription} onChange={(event) => update("seoDescription", event.target.value)} /></Field>
+            </div>
+          </Panel>
+        </div>
+
+        <div className="space-y-6">
+          <Panel title="Publishing" subtitle="Category and merchandising flags">
+            <div className="space-y-4">
+              <Field label="Category">
+                <select className={inputClass()} value={form.category} onChange={(event) => update("category", event.target.value)}>
+                  <option value="">Select category</option>
+                  {categories.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}
+                </select>
+              </Field>
+              {[
+                ["featured", "Featured product"],
+                ["trending", "Trending product"],
+                ["newArrival", "New arrival"],
+              ].map(([key, label]) => (
+                <label key={key} className="flex items-center justify-between rounded-2xl bg-cream-warm p-4 text-sm font-bold text-espresso-900">
+                  {label}
+                  <input type="checkbox" checked={form[key]} onChange={(event) => update(key, event.target.checked)} className="h-5 w-5 accent-[#D4A853]" />
+                </label>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel title="Images" subtitle="Multiple image upload preview">
+            <label className="flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-cream-deep bg-cream-warm p-6 text-center transition hover:border-gold">
+              <FiUploadCloud size={34} className="mb-3 text-gold-dark" />
+              <p className="font-semibold text-espresso-900">Drop images or browse</p>
+              <p className="text-xs text-ink-muted">First image is sent to current backend. UI supports multi-image workflow.</p>
+              <input type="file" multiple accept="image/*" hidden onChange={(event) => setPhotos(Array.from(event.target.files || []))} />
             </label>
-          </div>
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              {previews.map((preview, index) => (
+                <div key={preview.url} className="group relative aspect-square overflow-hidden rounded-2xl bg-cream-warm">
+                  <Image src={preview.url} alt={preview.name} fill className="object-cover" unoptimized />
+                  <button type="button" onClick={() => setPhotos((current) => current.filter((_, itemIndex) => itemIndex !== index))} className="absolute right-2 top-2 hidden rounded-full bg-white p-2 text-blush-rose shadow-card group-hover:block">
+                    <FiTrash2 size={13} />
+                  </button>
+                </div>
+              ))}
+              {!previews.length && <div className="col-span-3 rounded-2xl bg-cream-warm p-6 text-center text-sm text-ink-muted"><FiImage className="mx-auto mb-2" />No images selected</div>}
+            </div>
+          </Panel>
 
-          {/* Image Preview */}
-          {photo && (
-            <Image
-              src={URL.createObjectURL(photo)}
-              alt="product_photo"
-              width={160}
-              height={160}
-              className="h-40 mx-auto rounded-md object-cover"
-              unoptimized
-            />
-          )}
+          <Panel title="Food Details" subtitle="Ingredients, nutrition, allergens">
+            <div className="space-y-4">
+              {[
+                ["ingredients", "Ingredients"],
+                ["nutrition", "Nutritional info"],
+                ["allergens", "Allergens"],
+              ].map(([key, label]) => (
+                <Field key={key} label={label}>
+                  <textarea className={`${inputClass()} min-h-24 py-3`} value={form[key]} onChange={(event) => update(key, event.target.value)} />
+                </Field>
+              ))}
+            </div>
+          </Panel>
 
-          {/* Product Details */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Product Name</label>
-            <input
-              type="text"
-              value={name}
-              placeholder="Enter product name"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Description</label>
-            <textarea
-              value={description}
-              placeholder="Enter product description"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Price</label>
-            <input
-              type="number"
-              value={price}
-              placeholder="Enter price"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-              onChange={(e) => setPrice(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Quantity</label>
-            <input
-              type="number"
-              value={quantity}
-              placeholder="Enter quantity"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
-              onChange={(e) => setQuantity(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Shipping Selection */}
-          <div className="mb-4">
-            <label className="block font-semibold mb-2">Shipping</label>
-            <Select
-              placeholder="Select Shipping Option"
-              size="large"
-              className="w-full border border-gray-300 rounded-md"
-              onChange={(value) => setShipping(value)}
-              value={shipping || undefined}
-            >
-              <Option value="0">Not Available</Option>
-              <Option value="1">Available</Option>
-            </Select>
-          </div>
-
-          {/* Submit Button */}
-          <div className="text-center">
-            <button
-              type="submit"
-              className="w-full py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all duration-200"
-            >
-              CREATE PRODUCT
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <button disabled={saving} className="btn-luxury w-full gap-2 py-4 text-base disabled:opacity-60">
+            <FiSave />
+            {saving ? "Saving Product..." : "Save Product"}
+          </button>
+        </div>
+      </form>
+    </AdminShell>
   );
-};
-
-export default CreateProduct;
+}

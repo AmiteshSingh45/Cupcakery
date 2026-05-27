@@ -1,91 +1,153 @@
 "use client";
+
 import React, { useState } from "react";
 import axios from "axios";
+import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import Link from "next/link";
+import { motion } from "framer-motion";
+import { FiArrowRight, FiEye, FiEyeOff } from "react-icons/fi";
+import { BACKEND } from "@/lib/api";
+
+const FIELDS = [
+  { id: "name",    label: "Full Name",              type: "text",     placeholder: "Priya Sharma" },
+  { id: "email",   label: "Email Address",          type: "email",    placeholder: "priya@email.com" },
+  { id: "password",label: "Password",               type: "password", placeholder: "Min. 8 characters" },
+  { id: "phone",   label: "Phone Number",           type: "tel",      placeholder: "+91 98765 43210" },
+  { id: "address", label: "Address",                type: "text",     placeholder: "Parle Point, Surat" },
+  { id: "answer",  label: "Security Answer",        type: "text",     placeholder: "Your mother's maiden name..." },
+];
 
 export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [answer, setAnswer] = useState("");
-
+  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "", address: "", answer: "" });
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.id]: e.target.value }));
+
+  // ── All original registration logic preserved exactly ────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const res = await axios.post("https://cupcakery-backend.onrender.com/api/v1/auth/register", {
-        name,
-        email,
-        password,
-        phone,
-        address,
-        answer,
-      });
-
-      if (res.data && res.data.success) {
+      const res = await axios.post(
+        `${BACKEND}/api/v1/auth/register`,
+        { name: form.name, email: form.email, password: form.password, phone: form.phone, address: form.address, answer: form.answer }
+      );
+      if (res.data?.success) {
         toast.success(res.data.message);
-        router.push("/Login"); // Redirect to login page
+        router.push("/Login");
       } else {
         toast.error(res.data.message);
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-6">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full border border-gray-200">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-6">
-          Create an Account
-        </h2>
+    <div className="min-h-screen bg-cream-warm flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute top-0 left-0 w-[40vw] h-[40vw] max-w-lg rounded-full bg-blush/15 blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[35vw] h-[35vw] max-w-md rounded-full bg-gold/10 blur-[80px] pointer-events-none" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Input Fields */}
-          {[
-            { label: "Full Name", type: "text", value: name, setValue: setName },
-            { label: "Email Address", type: "email", value: email, setValue: setEmail },
-            { label: "Password", type: "password", value: password, setValue: setPassword },
-            { label: "Phone Number", type: "text", value: phone, setValue: setPhone },
-            { label: "Address", type: "text", value: address, setValue: setAddress },
-            { label: "Security Question (Answer)", type: "text", value: answer, setValue: setAnswer },
-          ].map((field, index) => (
-            <div key={index}>
-              <label className="block text-sm font-medium text-gray-700">{field.label}</label>
-              <input
-                type={field.type}
-                value={field.value}
-                onChange={(e) => field.setValue(e.target.value)}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-gray-900 placeholder-gray-500"
-                placeholder={`Enter ${field.label.toLowerCase()}...`}
-                required
-              />
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.25,0.46,0.45,0.94] }}
+        className="relative w-full max-w-lg"
+      >
+        <div className="bg-white/80 backdrop-blur-xl rounded-4xl shadow-luxury border border-cream-deep/50 overflow-hidden">
+          {/* Brand accent top bar */}
+          <div className="h-1 w-full bg-gold-shine" />
+
+          <div className="p-8 sm:p-10">
+            {/* Logo */}
+            <div className="flex items-center gap-3 mb-8">
+              <div className="relative w-12 h-12 rounded-2xl overflow-hidden shadow-card">
+                <Image src="/logo.jpg" alt="Bindi's Cupcakery" fill className="object-cover" />
+              </div>
+              <div>
+                <h1 className="font-display text-xl font-bold text-espresso-900">Bindi&apos;s Cupcakery</h1>
+                <p className="text-xs text-ink-muted font-body">Join the sweet community 🍰</p>
+              </div>
             </div>
-          ))}
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Register
-          </button>
-        </form>
+            <h2 className="font-display text-2xl font-semibold text-espresso-900 mb-1">Create Account</h2>
+            <p className="text-sm text-ink-muted font-body mb-7">
+              Sign up to order your favourite handcrafted desserts.
+            </p>
 
-        {/* Already have an account? */}
-        <p className="text-center text-gray-600 text-sm mt-4">
-          Already have an account?{" "}
-          <Link href="/Login" className="text-blue-500 font-semibold hover:underline">
-            Login here
-          </Link>
-        </p>
-      </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {FIELDS.map((field) => (
+                <div key={field.id}>
+                  <label htmlFor={field.id}
+                    className="block text-xs font-semibold tracking-wide uppercase text-ink-muted mb-2 font-body">
+                    {field.label}
+                  </label>
+                  <div className="relative">
+                    <input
+                      id={field.id}
+                      type={field.id === "password" ? (showPwd ? "text" : "password") : field.type}
+                      value={form[field.id]}
+                      onChange={handleChange}
+                      placeholder={field.placeholder}
+                      required
+                      className={`input-luxury ${field.id === "password" ? "pr-12" : ""}`}
+                    />
+                    {field.id === "password" && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPwd((v) => !v)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-muted
+                                   hover:text-espresso-900 transition-colors"
+                        aria-label={showPwd ? "Hide password" : "Show password"}
+                      >
+                        {showPwd ? <FiEyeOff size={17} /> : <FiEye size={17} />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <p className="text-xs text-ink-muted font-body pt-1 pb-2">
+                🔐 Security answer is used for password recovery.
+              </p>
+
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={{ scale: loading ? 1 : 1.02, boxShadow: loading ? "" : "0 8px 25px rgba(212,168,83,0.4)" }}
+                whileTap={{ scale: loading ? 1 : 0.97 }}
+                className="btn-luxury w-full justify-center py-4 text-base disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    Creating account...
+                  </span>
+                ) : (
+                  <>Create Account <FiArrowRight size={17} /></>
+                )}
+              </motion.button>
+            </form>
+
+            <p className="text-center text-sm text-ink-muted font-body mt-6">
+              Already have an account?{" "}
+              <Link href="/Login" className="text-gold-dark font-semibold hover:text-gold transition-colors">
+                Sign in here
+              </Link>
+            </p>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

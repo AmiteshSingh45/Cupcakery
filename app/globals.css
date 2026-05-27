@@ -2,75 +2,326 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Set background color to black and text color to white globally */
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — CSS Custom Properties
+═══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Brand Colors */
+  --color-espresso:   #1a0a00;
+  --color-espresso-2: #2d1200;
+  --color-gold:       #D4A853;
+  --color-gold-light: #F0CC82;
+  --color-gold-dark:  #A87C2A;
+  --color-cream:      #FDF6EC;
+  --color-cream-warm: #F9EED8;
+  --color-blush:      #F5C6C6;
+  --color-blush-rose: #D4607A;
+  --color-ink:        #1C1210;
+  --color-ink-muted:  #7A5C58;
+
+  /* Typography */
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-body:    var(--font-dm-sans), system-ui, sans-serif;
+
+  /* Spacing scale */
+  --section-gap: clamp(4rem, 8vw, 8rem);
+
+  /* Transitions */
+  --ease-luxury: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Backgrounds */
+  --background: var(--color-cream);
+  --foreground: var(--color-espresso);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GLOBAL RESET & BASE
+═══════════════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
-    background-color: black;
-    color: white;
+  font-family: var(--font-body);
+  background-color: var(--color-cream);
+  color: var(--color-espresso);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY SYSTEM
+═══════════════════════════════════════════════════════════════════════ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  line-height: 1.1;
+  color: var(--color-espresso);
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: clamp(2.5rem, 7vw, 6rem); font-weight: 700; }
+h2 { font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 600; }
+h3 { font-size: clamp(1.25rem, 2.5vw, 1.75rem); font-weight: 600; }
+
+p {
+  font-family: var(--font-body);
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CUSTOM SCROLLBAR
+═══════════════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream-warm);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-dark);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SELECTION
+═══════════════════════════════════════════════════════════════════════ */
+::selection {
+  background-color: rgba(212, 168, 83, 0.3);
+  color: var(--color-espresso);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPONENT UTILITIES (@layer components)
+═══════════════════════════════════════════════════════════════════════ */
+@layer components {
+
+  /* Section wrapper */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12;
   }
-  
-  /* Adjust heading color for visibility */
-  h1, h4 {
-    color: #f0f0f0; /* Light gray */
+
+  /* Section headings */
+  .section-label {
+    @apply text-xs font-body font-semibold tracking-[0.2em] uppercase text-gold;
   }
-  
-  /* Card title */
-  .card-title {
-    color: #ffffff; /* White color */
+  .section-title {
+    @apply font-display text-section font-semibold text-espresso-900 leading-tight;
   }
-  
-  /* Card text */
-  .card-text {
-    color: #dcdcdc; /* Light gray */
+  .section-subtitle {
+    @apply font-body text-base sm:text-lg text-ink-muted max-w-2xl leading-relaxed;
   }
-  
-  /* Button styles */
-  .btn {
-    color: white;
+
+  /* Luxury button — primary (gold) */
+  .btn-luxury {
+    @apply inline-flex items-center justify-center gap-2
+           bg-gold text-espresso font-body font-semibold
+           px-7 py-3.5 rounded-full
+           shadow-gold hover:shadow-luxury
+           hover:bg-gold-light
+           transition-all duration-300
+           relative overflow-hidden;
   }
-  
-  .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+  .btn-luxury::before {
+    content: '';
+    @apply absolute inset-0 bg-white opacity-0 transition-opacity duration-300;
   }
-  
-  .btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
+  .btn-luxury:hover::before {
+    @apply opacity-10;
   }
-  
-  .btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
+
+  /* Luxury button — outline (dark) */
+  .btn-luxury-outline {
+    @apply inline-flex items-center justify-center gap-2
+           border-2 border-espresso-900 text-espresso-900 font-body font-semibold
+           px-7 py-3.5 rounded-full
+           hover:bg-espresso-900 hover:text-cream
+           transition-all duration-300;
   }
-  
-  .btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
+
+  /* Luxury button — ghost (light) */
+  .btn-luxury-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           border-2 border-cream text-cream font-body font-semibold
+           px-7 py-3.5 rounded-full
+           hover:bg-cream hover:text-espresso-900
+           transition-all duration-300;
   }
-  
-  .btn-warning {
-    background-color: #ffc107;
-    border-color: #ffc107;
+
+  /* Glass card */
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/50
+           rounded-3xl shadow-glass;
   }
-  
-  /* Hover effect on buttons */
-  .btn:hover {
-    opacity: 0.9;
+  .glass-card-dark {
+    @apply bg-white/5 backdrop-blur-md border border-white/10
+           rounded-3xl shadow-glass;
   }
-  
-  /* Filter checkboxes/radios */
-  .ant-checkbox-wrapper, .ant-radio-wrapper {
-    color: #dcdcdc;
+
+  /* Premium input */
+  .input-luxury {
+    @apply w-full px-5 py-3.5 rounded-2xl border border-cream-deep
+           bg-white text-espresso-900 placeholder-ink-muted
+           font-body text-base
+           focus:outline-none focus:ring-2 focus:ring-gold/40 focus:border-gold
+           transition-all duration-300;
   }
-  
-  /* Product price color */
-  .card-text {
-    color: #ffffff;
+
+  /* Gradient text */
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-gold-dark via-gold to-gold-light
+           bg-clip-text text-transparent;
   }
-  .sechead{
-    font-family: Century;
-    font-style: normal;
-    font-weight: 400;
-    font-size: 36px;
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #f0e0c0 25%,
+      #fdf6ec 50%,
+      #f0e0c0 75%
+    );
+    background-size: 400px 100%;
+    animation: skeleton 1.5s ease-in-out infinite;
   }
-  
+
+  /* Star rating */
+  .star-filled  { @apply text-gold; }
+  .star-empty   { @apply text-cream-deep; }
+
+  /* Divider */
+  .divider-luxury {
+    @apply w-16 h-0.5 bg-gradient-to-r from-gold to-gold-light rounded-full;
+  }
+
+  /* Badge */
+  .badge-luxury {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+           bg-gold/10 text-gold-dark text-xs font-semibold tracking-wide;
+  }
+
+  /* Card hover lift */
+  .card-lift {
+    @apply transition-all duration-500 ease-luxury
+           hover:-translate-y-2 hover:shadow-card-hover;
+  }
+
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SHIMMER KEYFRAME (for skeleton)
+═══════════════════════════════════════════════════════════════════════ */
+@keyframes skeleton {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SWIPER OVERRIDES — premium testimonials
+═══════════════════════════════════════════════════════════════════════ */
+.swiper-button-next,
+.swiper-button-prev {
+  color: var(--color-gold) !important;
+  background: rgba(255,255,255,0.9);
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(26,10,0,0.12);
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 14px !important;
+  font-weight: 700;
+}
+.swiper-pagination-bullet {
+  background: var(--color-gold) !important;
+  opacity: 0.3 !important;
+}
+.swiper-pagination-bullet-active {
+  opacity: 1 !important;
+  transform: scale(1.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANT DESIGN OVERRIDES (filter checkboxes)
+═══════════════════════════════════════════════════════════════════════ */
+.ant-checkbox-wrapper,
+.ant-radio-wrapper {
+  color: var(--color-espresso) !important;
+  font-family: var(--font-body);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FOCUS VISIBLE — accessibility
+═══════════════════════════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOBILE MENU ANIMATION
+═══════════════════════════════════════════════════════════════════════ */
+@keyframes menu-slide-in {
+  0%   { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0);    opacity: 1; }
+}
+.mobile-menu-enter {
+  animation: menu-slide-in 0.4s var(--ease-luxury) forwards;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCROLL PROGRESS BAR
+═══════════════════════════════════════════════════════════════════════ */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-gold-dark), var(--color-gold), var(--color-gold-light));
+  z-index: 9999;
+  transition: width 0.05s linear;
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 10px rgba(212,168,83,0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FLOATING WHATSAPP BUTTON PULSE
+═══════════════════════════════════════════════════════════════════════ */
+@keyframes wa-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(37, 211, 102, 0.5); }
+  70%  { box-shadow: 0 0 0 12px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(37, 211, 102, 0); }
+}
+.wa-pulse { animation: wa-pulse 2s ease-in-out infinite; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   IMAGE LOADING FADE
+═══════════════════════════════════════════════════════════════════════ */
+img {
+  transition: opacity 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE OVERFLOW SAFETY
+═══════════════════════════════════════════════════════════════════════ */
+.section-container,
+main,
+footer,
+nav {
+  max-width: 100vw;
+  overflow-x: hidden;
+}

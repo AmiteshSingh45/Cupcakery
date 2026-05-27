@@ -1,129 +1,90 @@
 "use client";
-import { useEffect, useState } from "react";
-import AdminMenu from "../../../../components/Adminmenu";
 
-const AdminReviews = () => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
+import { FiCheck, FiMessageCircle, FiStar, FiTrash2, FiX } from "react-icons/fi";
+import { AdminShell } from "@/components/admin/AdminShell";
+import { DataToolbar, Panel, StatusPill } from "@/components/admin/AdminWidgets";
+import api from "@/lib/api";
+import { adminReviews } from "@/lib/adminData";
+
+export default function AdminReviewsPage() {
+  const [reviews, setReviews] = useState(adminReviews);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("All");
+  const token = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("auth") || "{}")?.token : "";
 
   useEffect(() => {
-    fetch("https://cupcakery-backend.onrender.com/api/v1/reviews/admin/reviews")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch reviews");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setReviews(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching reviews:", err);
-        setError("Failed to load reviews. Please try again later.");
-        setLoading(false);
-      });
-  }, []);
+    if (!token) return;
+    api.get("/api/v1/reviews/admin/reviews", { headers: { Authorization: `Bearer ${token}` }, timeout: 2500, noRetry: true })
+      .then(({ data }) => Array.isArray(data) && data.length && setReviews(data.map((review, index) => ({ ...adminReviews[index % adminReviews.length], ...review }))))
+      .catch(() => setReviews(adminReviews));
+  }, [token]);
 
-  const handleApprove = async (reviewId) => {
-    try {
-      const response = await fetch(
-        `https://cupcakery-backend.onrender.com/api/v1/reviews/admin/reviews/approve/${reviewId}`,
-        { method: "PUT" }
-      );
-      if (response.ok) {
-        setReviews((prevReviews) =>
-          prevReviews.map((review) =>
-            review._id === reviewId ? { ...review, status: "approved" } : review
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error approving review:", error);
-    }
-  };
+  const visibleReviews = useMemo(() => reviews.filter((review) => {
+    const matchesQuery = [review.user_name, review.review_text, review.product?.name].join(" ").toLowerCase().includes(query.toLowerCase());
+    const matchesStatus = status === "All" || review.status === status;
+    return matchesQuery && matchesStatus;
+  }), [query, reviews, status]);
 
-  const handleFeature = async (reviewId) => {
-    try {
-      const response = await fetch(
-        `https://cupcakery-backend.onrender.com/api/v1/reviews/admin/reviews/feature/${reviewId}`,
-        { method: "PUT" }
-      );
-      if (response.ok) {
-        setReviews((prevReviews) =>
-          prevReviews.map((review) =>
-            review._id === reviewId ? { ...review, is_featured: true } : review
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error featuring review:", error);
-    }
+  const setReview = (id, patch) => setReviews((current) => current.map((review) => review._id === id ? { ...review, ...patch } : review));
+
+  const approve = async (review) => {
+    setReview(review._id, { status: "approved" });
+    if (!token || String(review._id).startsWith("REV-")) return toast.success("Review approved");
+    await api.put(`/api/v1/reviews/admin/reviews/approve/${review._id}`, {}, { headers: { Authorization: `Bearer ${token}` } }).catch(() => toast.error("Backend unavailable"));
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-1/4 bg-white shadow-md p-6">
-        <AdminMenu />
-      </aside>
-
-      {/* Main Content */}
-      <div className="w-3/4 p-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">Admin - Manage Reviews</h2>
-
-        {loading ? (
-          <p className="text-gray-600">Loading reviews...</p>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : reviews.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reviews.map((review) => (
-              <div
-                key={review._id}
-                className="bg-white p-5 rounded-lg shadow-md border border-gray-200 transition duration-300 hover:shadow-lg"
-              >
-                <p className="font-semibold text-lg text-gray-900">
-                  {review.user_name || "Anonymous"}
-                </p>
-                <p className="text-gray-700 mt-1">{review.review_text}</p>
-                <p className="text-gray-800 font-medium mt-2">⭐ {review.rating} / 5</p>
-                <p
-                  className={`text-sm font-medium mt-1 ${
-                    review.status === "approved" ? "text-green-600" : "text-yellow-600"
-                  }`}
-                >
-                  Status: {review.status}
-                </p>
-
-                <div className="mt-4 flex gap-3">
-                  {review.status === "pending" && (
-                    <button
-                      className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition shadow-md"
-                      onClick={() => handleApprove(review._id)}
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {!review.is_featured && review.status === "approved" && (
-                    <button
-                      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition shadow-md"
-                      onClick={() => handleFeature(review._id)}
-                    >
-                      Feature
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+    <AdminShell title="Review Management" subtitle="Moderate reviews, feature social proof, reply to feedback, and monitor review quality.">
+      <div className="mb-6 grid gap-4 md:grid-cols-4">
+        {[
+          ["Total reviews", reviews.length],
+          ["Pending", reviews.filter((review) => review.status === "pending").length],
+          ["Approved", reviews.filter((review) => review.status === "approved").length],
+          ["Featured", reviews.filter((review) => review.is_featured).length],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-[1.5rem] border border-cream-deep bg-white p-5 shadow-card">
+            <p className="text-xs font-bold uppercase tracking-widest text-ink-muted">{label}</p>
+            <p className="mt-1 font-display text-3xl font-bold text-espresso-900">{value}</p>
           </div>
-        ) : (
-          <p className="text-gray-700">No reviews yet.</p>
-        )}
+        ))}
       </div>
-    </div>
-  );
-};
 
-export default AdminReviews;
+      <DataToolbar
+        search={query}
+        setSearch={setQuery}
+        actionLabel="Export Reviews"
+        filters={
+          <select value={status} onChange={(event) => setStatus(event.target.value)} className="h-12 rounded-2xl border border-cream-deep bg-white px-4 text-sm outline-none focus:border-gold">
+            <option>All</option>
+            <option>pending</option>
+            <option>approved</option>
+          </select>
+        }
+      />
+
+      <div className="mt-6 grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+        {visibleReviews.map((review) => (
+          <Panel key={review._id} title={review.user_name || "Anonymous"} subtitle={review.product?.name || "Store review"}>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex text-gold">
+                {Array.from({ length: 5 }).map((_, index) => <FiStar key={index} fill={index < review.rating ? "currentColor" : "none"} />)}
+              </div>
+              <StatusPill status={review.status} />
+            </div>
+            <p className="min-h-20 text-sm leading-7 text-ink-muted">{review.review_text}</p>
+            <textarea placeholder="Write an admin reply..." className="mt-4 min-h-20 w-full rounded-2xl border border-cream-deep bg-cream-warm p-3 text-sm outline-none focus:border-gold" />
+            <div className="mt-4 flex flex-wrap gap-2">
+              {review.status === "pending" && <button onClick={() => approve(review)} className="inline-flex items-center gap-2 rounded-2xl bg-green-600 px-4 py-2 text-sm font-bold text-white"><FiCheck /> Approve</button>}
+              <button onClick={() => setReview(review._id, { status: "rejected" })} className="inline-flex items-center gap-2 rounded-2xl border border-blush px-4 py-2 text-sm font-bold text-blush-rose"><FiX /> Reject</button>
+              <button onClick={() => setReview(review._id, { is_featured: !review.is_featured })} className="inline-flex items-center gap-2 rounded-2xl border border-cream-deep px-4 py-2 text-sm font-bold text-espresso-900"><FiStar /> {review.is_featured ? "Unfeature" : "Feature"}</button>
+              <button className="inline-flex items-center gap-2 rounded-2xl border border-cream-deep px-4 py-2 text-sm font-bold text-espresso-900"><FiMessageCircle /> Reply</button>
+              <button className="inline-flex items-center gap-2 rounded-2xl border border-cream-deep px-4 py-2 text-sm font-bold text-blush-rose"><FiTrash2 /> Delete</button>
+            </div>
+          </Panel>
+        ))}
+      </div>
+    </AdminShell>
+  );
+}

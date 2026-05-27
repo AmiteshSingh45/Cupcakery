@@ -15,12 +15,11 @@ export const registerController = async (req, res) => {
 
   try {
     const { name, email, password, phone, address, answer} = req.body;
-    console.log("Received Name:", name);
 
     // Validations
     if (!name) return res.status(400).send({ message : "Name is Required" });
-    if (!email) return res.status(400).send({ message : "Email is Required" });
-    if (!password) return res.status(400).send({ message : "Password is Required" });
+    if (!email || typeof email !== 'string') return res.status(400).send({ message : "Valid Email is Required" });
+    if (!password || typeof password !== 'string') return res.status(400).send({ message : "Valid Password is Required" });
     if (!phone) return res.status(400).send({ message : "Phone no is Required" });
     if (!address) return res.status(400).send({ message : "Address is Required" });
     if (!answer) return res.status(400).send({ message : "Answer is Required" });
@@ -75,11 +74,11 @@ export const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
-    if (!email || !password) {
+    // Validation — also prevent NoSQL injection (e.g. {$gt: ''} as email)
+    if (!email || typeof email !== 'string' || !password || typeof password !== 'string') {
       return res.status(400).send({
         success: false,
-        message: "Email and password are required",
+        message: "Valid email and password are required",
       });
     }
 
@@ -208,4 +207,51 @@ export const verifyOtp = async (req, res) => {
   otpStore.delete(userEmail);
 
   res.json({ success: true, message: "Password reset successful" });
+};
+
+
+// Update Profile Controller
+export const updateProfileController = async (req, res) => {
+  try {
+    const { name, email, password, phone, address } = req.body;
+    const user = await userModel.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Hash new password only if provided
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : user.password;
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        name: name || user.name,
+        phone: phone || user.phone,
+        address: address || user.address,
+        password: hashedPassword,
+      },
+      { new: true }
+    );
+
+    res.status(200).send({
+      success: true,
+      message: "Profile updated successfully",
+      updatedUser: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        role: updatedUser.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateProfileController:", error);
+    res.status(500).send({
+      success: false,
+      message: "Error updating profile",
+      error: error.message,
+    });
+  }
 };
