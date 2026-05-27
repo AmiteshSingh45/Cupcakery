@@ -18,8 +18,8 @@
     "cors": "^2.8.5",
     "framer-motion": "^12.40.0",
     "moment": "^2.30.1",
-    "next": "^15.1.6",
-    "next-auth": "^4.24.11",
+    "next": "^15.5.18",
+    "next-auth": "^3.29.10",
     "razorpay": "^2.9.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -27,11 +27,11 @@
     "react-icons": "^5.4.0",
     "react-redux": "^9.2.0",
     "react-toastify": "^11.0.3",
-    "swiper": "^11.2.4"
+    "swiper": "^12.2.0"
   },
   "devDependencies": {
     "eslint": "^8",
-    "eslint-config-next": "^15.1.6",
+    "eslint-config-next": "^15.5.18",
     "postcss": "^8",
     "tailwindcss": "^3.4.1"
   }
