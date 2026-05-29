@@ -27,7 +27,8 @@
     "react-icons": "^5.4.0",
     "react-redux": "^9.2.0",
     "react-toastify": "^11.0.3",
-    "swiper": "^12.2.0"
+    "swiper": "^12.2.0",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "eslint": "^8",

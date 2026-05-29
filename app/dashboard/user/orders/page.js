@@ -11,18 +11,18 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [auth] = useAuth();
 
-  const getOrders = async () => {
-    try {
-      const { data } = await axios.get(`${BACKEND}/api/v1/auth/orders`, {
-        headers: { Authorization: `Bearer ${auth?.token}` },
-      });
-      setOrders(data);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    }
-  };
-
   useEffect(() => {
+    const getOrders = async () => {
+      try {
+        const { data } = await axios.get(`${BACKEND}/api/v1/auth/orders`, {
+          headers: { Authorization: `Bearer ${auth?.token}` },
+        });
+        setOrders(data);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+
     if (auth?.token) getOrders();
   }, [auth?.token]);
 

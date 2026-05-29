@@ -59,7 +59,7 @@ export default function FirstScreen({ onOptionSelect }) {
           🍰 What can I help you with today?
         </p>
         <p className="text-gray-600 text-xs mt-1">
-          I'm here to guide you to the perfect dessert!
+          I&apos;m here to guide you to the perfect dessert!
         </p>
       </motion.div>
 
@@ -87,7 +87,7 @@ export default function FirstScreen({ onOptionSelect }) {
         transition={{ delay: 0.6 }}
         className="text-center text-xs text-gray-500 mt-4 px-2"
       >
-        Or just describe what you're looking for! 💬
+        Or just describe what you&apos;re looking for! 💬
       </motion.p>
     </motion.div>
   );

@@ -5,6 +5,7 @@ import { FiShoppingCart, FiEye, FiStar } from 'react-icons/fi';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ProductCardInChat({ product }) {
   const [showPreview, setShowPreview] = useState(false);
@@ -37,9 +38,10 @@ export default function ProductCardInChat({ product }) {
     >
       {/* Product Image */}
       <div className="relative h-40 bg-gray-100 overflow-hidden group cursor-pointer">
-        <img
+        <Image
           src={product.image || '/placeholder.jpg'}
           alt={product.name}
+          fill
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute top-2 right-2 bg-rose-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
