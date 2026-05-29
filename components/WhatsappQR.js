@@ -34,7 +34,7 @@ const WhatsAppQR = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-6 left-6 z-50 flex flex-col items-end gap-3">
 
       {/* ── Popup Card ───────────────────────────────────────────────────── */}
       <AnimatePresence>
@@ -46,18 +46,18 @@ const WhatsAppQR = () => {
             exit={{ opacity: 0, scale: 0.85, y: 16 }}
             transition={{ type: "spring", stiffness: 350, damping: 28 }}
             className="bg-white/95 backdrop-blur-xl border border-cream-deep rounded-3xl shadow-luxury p-5 w-52"
-            style={{ transformOrigin: "bottom right" }}
+            style={{ transformOrigin: "bottom left" }}
           >
             {/* Close */}
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-3 right-3 w-6 h-6 rounded-full bg-espresso-900/6 flex items-center justify-center text-ink-muted hover:bg-espresso-900/12 transition-all"
+              className="absolute top-3 left-3 w-6 h-6 rounded-full bg-espresso-900/6 flex items-center justify-center text-ink-muted hover:bg-espresso-900/12 transition-all"
             >
               <FiX size={13} />
             </button>
 
             {/* Header */}
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3 pl-8">
               <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
                 <FaWhatsapp size={18} className="text-white" />
               </div>

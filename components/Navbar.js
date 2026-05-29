@@ -101,13 +101,13 @@ const Navbar = () => {
     <>
       {/* ── Main Navbar ──────────────────────────────────────────────────── */}
       <nav
-        className={`sticky top-0 z-50 w-full transition-all duration-500 ${
+        className={`sticky top-0 z-[10010] relative w-full overflow-visible transition-all duration-500 ${
           scrolled
             ? "bg-cream/90 backdrop-blur-xl shadow-luxury border-b border-cream-deep/60"
             : "bg-cream/70 backdrop-blur-md border-b border-transparent"
         }`}
       >
-        <div className="section-container flex items-center justify-between h-20">
+        <div className="section-container flex items-center justify-between h-20 overflow-visible">
 
           {/* ── Logo ─────────────────────────────────────────────────────── */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
@@ -125,7 +125,7 @@ const Navbar = () => {
           <ul className="hidden md:flex items-center gap-1">
 
             {/* Collections dropdown */}
-            <li className="relative" ref={collectionsRef}>
+            <li className="relative overflow-visible" ref={collectionsRef}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -150,7 +150,7 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.97 }}
                     transition={{ duration: 0.22 }}
-                    className="absolute left-0 mt-2 w-56 bg-cream/95 backdrop-blur-xl rounded-2xl shadow-luxury border border-cream-deep/50 p-2 z-[9999]"
+                    className="absolute top-full left-0 mt-2 w-56 bg-cream/95 backdrop-blur-xl rounded-2xl shadow-luxury border border-cream-deep/50 p-2 z-[10020]"
                   >
                     {catLoading ? (
                       <li className="px-4 py-3 text-xs text-ink-muted animate-pulse">Loading collections…</li>
@@ -252,7 +252,7 @@ const Navbar = () => {
                 </Link>
               </div>
             ) : (
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative overflow-visible" ref={userMenuRef}>
                 <button
                   onClick={(e) => { e.stopPropagation(); setUserMenuOpen((v) => !v); }}
                   className="flex items-center gap-2 pl-2 pr-4 py-1.5 rounded-full border border-cream-deep hover:border-gold hover:shadow-gold/20 hover:shadow-md transition-all duration-300"
@@ -275,7 +275,7 @@ const Navbar = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 6, scale: 0.97 }}
                       transition={{ duration: 0.22 }}
-                      className="absolute right-0 mt-2 w-48 bg-cream/95 backdrop-blur-xl rounded-2xl shadow-luxury border border-cream-deep/50 p-2 z-[9999]"
+                      className="absolute top-full right-0 mt-2 w-48 bg-cream/95 backdrop-blur-xl rounded-2xl shadow-luxury border border-cream-deep/50 p-2 z-[10020]"
                     >
                       <li>
                         <Link

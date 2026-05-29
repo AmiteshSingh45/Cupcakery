@@ -12,6 +12,7 @@ import productRoutes from "./Routes/ProductRoutes.js";
 import reviewRoutes from "./Routes/reveiwRoutes.js";
 import moodRoutes from "./Routes/moodRoutes.js";
 import adminRoutes from "./Routes/AdminRoutes.js";
+import chatRoutes from "./Routes/chatRoutes.js";
 import morgan from "morgan";
 
 const app = express();
@@ -128,6 +129,7 @@ app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api", moodRoutes);
 app.use("/api/v1/payment", payment);
+app.use("/api/chat", chatRoutes);
 
 // ─────────────────────────────────────────────────────────────
 // Health Route

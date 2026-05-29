@@ -8,6 +8,7 @@ import { AuthProvider } from "@/Context/auth";
 import { CartProvider } from "@/Context/cart";
 import { SearchProvider } from "../Context/search";
 import ScrollProgress from "@/components/ScrollProgress";
+import BindiChatButton from "@/components/chat/BindiChatButton";
 
 // ── Google Fonts ────────────────────────────────────────────────────────────
 const playfairDisplay = Playfair_Display({
@@ -71,7 +72,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${playfairDisplay.variable} ${dmSans.variable} ${geistMono.variable}`}
     >
-      <body className="font-body antialiased bg-cream text-espresso-900 overflow-x-hidden">
+      <body className="font-body antialiased bg-cream text-espresso-900 overflow-y-visible">
         <AuthProvider>
           <CartProvider>
             <SearchProvider>
@@ -80,6 +81,9 @@ export default function RootLayout({ children }) {
 
               {/* Premium sticky navbar */}
               <Navbar />
+
+              {/* Bindi AI Chatbot */}
+              <BindiChatButton />
 
               {/* Toast notifications */}
               <Toaster
