@@ -6,6 +6,7 @@ import { FiClock, FiTruck } from "react-icons/fi";
 
 /**
  * DeliveryETA — real-time countdown to estimated delivery
+ * All hooks are called unconditionally before any early returns (Rules of Hooks).
  */
 export default function DeliveryETA({ order }) {
   const [timeLeft, setTimeLeft] = useState(null);
@@ -14,50 +15,59 @@ export default function DeliveryETA({ order }) {
   const estimatedDelivery = order?.estimated_delivery;
   const currentStatus = order?.status || order?.order_status;
 
-  // Don't show ETA for terminal states or delivered orders
-  if (["Delivered", "Cancelled", "Rejected", "Refunded"].includes(currentStatus)) {
-    if (currentStatus === "Delivered") {
-      return (
-        <div className="flex items-center gap-3 rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
-          <span className="text-2xl">🎉</span>
-          <div>
-            <p className="text-sm font-bold text-emerald-800">Delivered!</p>
-            <p className="text-xs text-emerald-600">
-              {order?.delivered_at
-                ? `Delivered at ${moment(order.delivered_at).format("h:mm A, MMM D")}`
-                : "Your order has been delivered."}
-            </p>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
-
+  // ── Countdown — runs always (hooks must not be conditional) ──────────────
   useEffect(() => {
-    if (!estimatedDelivery) return;
+    // Clear state when status is terminal
+    if (
+      !estimatedDelivery ||
+      ["Delivered", "Cancelled", "Rejected", "Refunded"].includes(currentStatus)
+    ) {
+      setTimeLeft(null);
+      setIsOverdue(false);
+      return;
+    }
 
     const tick = () => {
-      const now = moment();
-      const eta = moment(estimatedDelivery);
-      const diff = eta.diff(now, "seconds");
-
+      const diff = moment(estimatedDelivery).diff(moment(), "seconds");
       if (diff <= 0) {
         setIsOverdue(true);
         setTimeLeft(null);
         return;
       }
-
-      const hours = Math.floor(diff / 3600);
-      const minutes = Math.floor((diff % 3600) / 60);
-      const seconds = diff % 60;
-      setTimeLeft({ hours, minutes, seconds, total: diff });
+      setIsOverdue(false);
+      setTimeLeft({
+        hours: Math.floor(diff / 3600),
+        minutes: Math.floor((diff % 3600) / 60),
+        seconds: diff % 60,
+        total: diff,
+      });
     };
 
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [estimatedDelivery]);
+  }, [estimatedDelivery, currentStatus]);
+
+  // ── Early returns AFTER all hooks ─────────────────────────────────────────
+  if (currentStatus === "Delivered") {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
+        <span className="text-2xl">🎉</span>
+        <div>
+          <p className="text-sm font-bold text-emerald-800">Delivered!</p>
+          <p className="text-xs text-emerald-600">
+            {order?.delivered_at
+              ? `Delivered at ${moment(order.delivered_at).format("h:mm A, MMM D")}`
+              : "Your order has been delivered."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (["Cancelled", "Rejected", "Refunded"].includes(currentStatus)) {
+    return null;
+  }
 
   if (!estimatedDelivery) {
     return (
@@ -105,7 +115,6 @@ export default function DeliveryETA({ order }) {
         })}
       </p>
 
-      {/* Countdown digits */}
       {timeLeft && (
         <div className="flex gap-2">
           {hours > 0 && (
@@ -113,29 +122,21 @@ export default function DeliveryETA({ order }) {
               <div className="rounded-xl bg-espresso-900 px-3 py-2 font-display text-2xl font-bold text-gold min-w-[52px]">
                 {String(hours).padStart(2, "0")}
               </div>
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">
-                hrs
-              </p>
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">hrs</p>
             </div>
           )}
           <div className="text-center">
             <div className="rounded-xl bg-espresso-900 px-3 py-2 font-display text-2xl font-bold text-gold min-w-[52px]">
               {String(minutes).padStart(2, "0")}
             </div>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">
-              min
-            </p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">min</p>
           </div>
           <div className="text-center">
             <div className="rounded-xl bg-espresso-900 px-3 py-2 font-display text-2xl font-bold text-gold min-w-[52px]">
               {String(seconds).padStart(2, "0")}
             </div>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">
-              sec
-            </p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-ink-muted">sec</p>
           </div>
-
-          {/* Urgency label */}
           {timeLeft.total < 1800 && (
             <div className="flex items-center">
               <span className="rounded-xl bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-700">

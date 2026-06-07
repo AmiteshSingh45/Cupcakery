@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import moment from "moment";
 import Image from "next/image";
@@ -40,7 +40,7 @@ export default function AdminOrdersPage() {
   const [auth] = useAuth();
 
   // ── Fetch orders from real backend ─────────────────────────────────────────
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!auth?.token) return;
     setLoading(true);
     setFetchError(null);
@@ -57,11 +57,11 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [auth?.token]);
 
   useEffect(() => {
     fetchOrders();
-  }, [auth?.token]);
+  }, [fetchOrders]);
 
   // ── Socket.IO — real-time order updates ────────────────────────────────────
   useEffect(() => {
