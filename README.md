@@ -29,3 +29,34 @@ yarn dev
 pnpm dev
 # or
 bun dev
+```
+
+## AI Bakery Assistant
+
+The floating Bindi Bakery Assistant uses the Next.js widget in `components/chat` and a private Python AI service in `BackendAI`.
+
+Install frontend dependencies:
+
+```bash
+npm install
+```
+
+Install the AI backend in a virtual environment:
+
+```bash
+cd BackendAI
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+```
+
+Add free-tier provider keys to `BackendAI/.env`. The fallback order is Groq, Together AI, Hugging Face, then OpenRouter. The frontend never receives these keys.
+
+Run the website and AI backend together:
+
+```bash
+npm run bindi
+```
+
+The Next proxy expects the AI backend at `AI_BACKEND_URL` and defaults to `http://localhost:8000`. GraphQL is available at `http://localhost:8000/graphql`, and the streaming chat route is `http://localhost:8000/api/chat/stream`.

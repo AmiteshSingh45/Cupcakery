@@ -1,42 +1,43 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-// Create the AuthContext
 const AuthContext = createContext();
 
-// Create a custom hook to use AuthContext
-export const useAuth = () => {
-  return useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext);
+
+// Helper: check if auth object represents an admin user
+export const isAdminUser = (auth) => {
+  if (!auth?.user) return false;
+  return (
+    auth.user.role === 1 ||
+    auth.user.adminRole === "Super Admin" ||
+    auth.user.adminRole === "Admin"
+  );
 };
 
-// AuthProvider component to provide authentication data
 export const AuthProvider = ({ children }) => {
-  const [auth, setAuth] = useState(null);  // Initialize with null instead of "" for clarity
+  const [auth, setAuth] = useState(null);
+
   useEffect(() => {
-    // Get auth data from localStorage and parse it safely
-
-    function setitem(){const storedAuth = localStorage.getItem("auth");
-
-    // Check if there's a valid auth token in localStorage
-    if (storedAuth) {
-      try {
-        const parsedAuth = JSON.parse(storedAuth);
-        setAuth(parsedAuth);  // Set parsed auth data to state
-      } catch (e) {
-        console.error("Error parsing auth data from localStorage", e);
+    try {
+      const stored = localStorage.getItem("auth");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setAuth(parsed);
       }
-    }}
-    setitem();
-  }, []);  // Empty dependency array, run only once when the component mounts
+    } catch (e) {
+      console.error("Error parsing auth from localStorage", e);
+    }
+  }, []);
 
   const login = (userData) => {
-    setAuth(userData);  // Update the state with the user data
-    localStorage.setItem("auth", JSON.stringify(userData));  // Store the user data in localStorage
+    setAuth(userData);
+    localStorage.setItem("auth", JSON.stringify(userData));
   };
 
   const logout = () => {
-    setAuth(null);  // Clear auth data from state
-    localStorage.removeItem("auth");  // Remove auth data from localStorage
+    setAuth(null);
+    localStorage.removeItem("auth");
   };
 
   return (
@@ -46,3 +47,8 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// Convenience hook: returns true/false for admin check
+export const useIsAdmin = () => {
+  const [auth] = useAuth();
+  return isAdminUser(auth);
+};

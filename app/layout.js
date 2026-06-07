@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/Context/auth";
 import { CartProvider } from "@/Context/cart";
 import { SearchProvider } from "../Context/search";
+import { NotificationsProvider } from "@/Context/notifications";
 import ScrollProgress from "@/components/ScrollProgress";
 import BindiChatButton from "@/components/chat/BindiChatButton";
 
@@ -75,7 +76,8 @@ export default function RootLayout({ children }) {
       <body className="font-body antialiased bg-cream text-espresso-900 overflow-y-visible">
         <AuthProvider>
           <CartProvider>
-            <SearchProvider>
+            <NotificationsProvider>
+              <SearchProvider>
               {/* Scroll progress indicator */}
               <ScrollProgress />
 
@@ -111,7 +113,8 @@ export default function RootLayout({ children }) {
               <main className="min-h-[82vh]">{children}</main>
 
               <Footer />
-            </SearchProvider>
+              </SearchProvider>
+            </NotificationsProvider>
           </CartProvider>
         </AuthProvider>
       </body>

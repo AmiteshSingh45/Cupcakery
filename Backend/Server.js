@@ -2,7 +2,10 @@ import dotenv from "dotenv";
 // ⚠️ dotenv MUST run first
 dotenv.config();
 
+import http from "http";
 import express from "express";
+import { Server as IoServer } from "socket.io";
+import JWT from "jsonwebtoken";
 import ConnectDb from "./Config/db.js";
 import cors from "cors";
 import authRoutes from "./Routes/AuthRoutes.js";
@@ -13,6 +16,7 @@ import reviewRoutes from "./Routes/reveiwRoutes.js";
 import moodRoutes from "./Routes/moodRoutes.js";
 import adminRoutes from "./Routes/AdminRoutes.js";
 import chatRoutes from "./Routes/chatRoutes.js";
+import { setSocketServer } from "./Controllers/paymentController.js";
 import morgan from "morgan";
 
 const app = express();
@@ -167,7 +171,53 @@ app.use((err, req, res, next) => {
 // Start Server
 // ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 4000;
+const server = http.createServer(app);
 
-app.listen(PORT, () => {
+const io = new IoServer(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  },
+});
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(" ")[1] || socket.handshake.headers?.auth;
+  if (!token) return next(new Error("Authentication error"));
+
+  try {
+    const decoded = JWT.verify(token, process.env.JWT_SECRET);
+    socket.user = decoded;
+    return next();
+  } catch (error) {
+    return next(new Error("Authentication error"));
+  }
+});
+
+io.on("connection", (socket) => {
+  const userId = String(socket.user?._id);
+  if (userId) {
+    socket.join(`user_${userId}`);
+  }
+
+  const isAdmin = socket.user?.role === 1 || ["Super Admin", "Admin"].includes(socket.user?.adminRole);
+  if (isAdmin) {
+    socket.join("admins");
+  }
+
+  socket.on("joinOrder", ({ orderId }) => {
+    if (orderId) {
+      socket.join(`order_${orderId}`);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    // socket.io automatically cleans up room membership
+  });
+});
+
+setSocketServer(io);
+
+server.listen(PORT, () => {
   console.log(`🚀 App is listening on port ${PORT}`);
 });

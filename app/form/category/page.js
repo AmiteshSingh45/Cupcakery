@@ -1,10 +1,17 @@
-'use client'; // Add this line at the top of the file
+'use client';
 
-import React from "react";
+import React, { useState } from "react";
 
-const CategoryForm = ({ handleSubmit, value, setValue }) => {
+const CategoryForm = () => {
+  const [value, setValue] = useState("");
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setValue("");
+  };
+
   return (
-    <>
+    <main className="mx-auto flex min-h-[60vh] max-w-md items-center px-4">
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <input
@@ -20,7 +27,7 @@ const CategoryForm = ({ handleSubmit, value, setValue }) => {
           Submit
         </button>
       </form>
-    </>
+    </main>
   );
 };
 

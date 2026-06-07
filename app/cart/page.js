@@ -73,6 +73,10 @@ const CartPage = () => {
   const { cart, setCart } = useCart();
   const [isCartLoaded, setIsCartLoaded] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
+  const [address, setAddress] = useState(auth?.user?.address || "");
+  const [phoneNumber, setPhoneNumber] = useState(auth?.user?.phone || "");
+  const [notes, setNotes] = useState("");
+  const [deliverySlot, setDeliverySlot] = useState("");
   const router = useRouter();
 
   // ── Razorpay script loader (original logic preserved) ────────────────────
@@ -99,7 +103,7 @@ const CartPage = () => {
   const paymentHandler = async (e, amount) => {
     e.preventDefault();
     setPayLoading(true);
-    const receiptId = "qwsaq1";
+    const receiptId = `order_${Date.now()}`;
 
     try {
       const response = await fetch(`${BACKEND}/api/v1/payment/create-order`, {
@@ -126,27 +130,39 @@ const CartPage = () => {
         handler: async function (response) {
           const orderDetails = {
             userId:       auth?.user?._id,
-            payStatus:    "paid",
             orderId:      response.razorpay_order_id,
             paymentId:    response.razorpay_payment_id,
             signature:    response.razorpay_signature,
             amount,
+            subtotal:     amount,
+            delivery_fee: 0,
             orderItems:   cartArray,
-            userShipping: auth.user,
-            orderDate:    new Date().toISOString(),
+            userShipping: {
+              name:    auth?.user?.name || "",
+              email:   auth?.user?.email || "",
+              phone:   phoneNumber,
+              address: address,
+            },
+            address,
+            phone_number: phoneNumber,
+            notes,
+            delivery_slot: deliverySlot,
+            payment_method: "Razorpay",
           };
 
           const saveRes = await fetch(`${BACKEND}/api/v1/payment/verify-payment`, {
             method:  "POST",
             body:    JSON.stringify(orderDetails),
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: auth?.token ? `Bearer ${auth.token}` : "",
+            },
           });
 
           if (!saveRes.ok) {
             const errText = await saveRes.text();
             throw new Error(`Order Save Error: ${saveRes.status} - ${errText}`);
           }
-          // Clear cart and notify success
           setCart([]);
           toast.success("Payment Successful! Your order has been placed 🎉");
           router.push("/dashboard/user/orders");
@@ -154,7 +170,7 @@ const CartPage = () => {
         prefill: {
           name:    auth?.user?.name || "Customer",
           email:   auth?.user?.email || "customer@example.com",
-          contact: "9000000000",
+          contact: phoneNumber || "9000000000",
         },
         theme: { color: "#D4A853" },
       };
@@ -265,6 +281,45 @@ const CartPage = () => {
                     </div>
                   </div>
 
+                  <div className="space-y-4 mb-5 bg-cream-warm rounded-3xl p-4">
+                    <label className="block text-sm font-medium text-espresso-900">
+                      Delivery Address
+                      <input
+                        value={address}
+                        onChange={(event) => setAddress(event.target.value)}
+                        placeholder="Enter delivery address"
+                        className="mt-2 w-full rounded-2xl border border-cream-deep bg-white px-4 py-3 text-sm outline-none focus:border-gold"
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-espresso-900">
+                      Phone Number
+                      <input
+                        value={phoneNumber}
+                        onChange={(event) => setPhoneNumber(event.target.value)}
+                        placeholder="Enter phone number"
+                        className="mt-2 w-full rounded-2xl border border-cream-deep bg-white px-4 py-3 text-sm outline-none focus:border-gold"
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-espresso-900">
+                      Delivery Notes
+                      <textarea
+                        value={notes}
+                        onChange={(event) => setNotes(event.target.value)}
+                        placeholder="Any special delivery instructions"
+                        rows={3}
+                        className="mt-2 w-full rounded-2xl border border-cream-deep bg-white px-4 py-3 text-sm outline-none focus:border-gold"
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-espresso-900">
+                      Delivery Slot
+                      <input
+                        value={deliverySlot}
+                        onChange={(event) => setDeliverySlot(event.target.value)}
+                        placeholder="e.g. Tomorrow 4-6 PM"
+                        className="mt-2 w-full rounded-2xl border border-cream-deep bg-white px-4 py-3 text-sm outline-none focus:border-gold"
+                      />
+                    </label>
+                  </div>
                   <p className="text-xs text-ink-muted font-body mb-5 bg-cream-warm rounded-2xl p-3 text-center">
                     🏪 Pickup at Parle Point, Surat · 10 AM – 7 PM
                   </p>

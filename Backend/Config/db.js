@@ -10,7 +10,7 @@ dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
 const ConnectDb = async () => {
     try {
-        console.log("MongoDB URI:", process.env.MONGODB_URI);
+        console.log("MongoDB URI configured:", Boolean(process.env.MONGODB_URI));
 
         // Pre-warm DNS: Resolve the Atlas SRV record using our configured DNS
         // This ensures the DNS cache is populated before mongoose attempts connection

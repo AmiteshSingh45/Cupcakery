@@ -102,11 +102,16 @@ export const loginController = async (req, res) => {
       });
     }
 
-    // Generate token 
-    //generating a JSON Web Token (JWT) after a successful user login
-    const token = JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    // Generate token — include role + adminRole so frontend can guard routes
+    const token = JWT.sign(
+      { _id: user._id, role: user.role, adminRole: user.adminRole || "Customer" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // Update last login timestamp (non-blocking)
+    user.lastLoginAt = new Date();
+    user.save().catch(() => {});
 
     res.status(200).send({
       success: true,
@@ -116,8 +121,9 @@ export const loginController = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        address: user.address, 
-        role : user.role
+        address: user.address,
+        role: user.role,
+        adminRole: user.adminRole || "Customer",
       },
       token,
     });
