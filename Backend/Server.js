@@ -16,6 +16,7 @@ import reviewRoutes from "./Routes/reveiwRoutes.js";
 import moodRoutes from "./Routes/moodRoutes.js";
 import adminRoutes from "./Routes/AdminRoutes.js";
 import chatRoutes from "./Routes/chatRoutes.js";
+import healthRoutes from "./Routes/healthRoutes.js";
 import { setSocketServer } from "./Controllers/paymentController.js";
 import morgan from "morgan";
 
@@ -88,32 +89,12 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
-// ─────────────────────────────────────────────────────────────
-// Apply CORS BEFORE Routes
-// ─────────────────────────────────────────────────────────────
+// ── CORS — single source of truth, no manual override ────────────────────────
+// The cors() middleware handles all preflight (OPTIONS) + actual requests.
+// DO NOT add a second manual res.header("Access-Control-Allow-Origin") block —
+// that conflicts with Socket.IO's own CORS check and breaks WebSocket upgrades.
 app.use(cors(corsOptions));
 
-// Handle preflight requests
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Auth"
-  );
-
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-  );
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
 
 // ─────────────────────────────────────────────────────────────
 // Middleware
@@ -134,14 +115,14 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api", moodRoutes);
 app.use("/api/v1/payment", payment);
 app.use("/api/chat", chatRoutes);
+app.use("/", healthRoutes); // ✅ health check for Render keep-alive
 
-// ─────────────────────────────────────────────────────────────
-// Health Route
-// ─────────────────────────────────────────────────────────────
-app.get("/", (req, res) => {
+// Root welcome (handled inline — not a duplicate of /health)
+app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Welcome to Bindi's Cupcakery API 🎂",
+    docs: "/health",
   });
 });
 

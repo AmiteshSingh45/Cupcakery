@@ -10,6 +10,7 @@ import { SearchProvider } from "../Context/search";
 import { NotificationsProvider } from "@/Context/notifications";
 import ScrollProgress from "@/components/ScrollProgress";
 import BindiChatButton from "@/components/chat/BindiChatButton";
+import RenderKeepAlive from "@/components/RenderKeepAlive";
 
 // ── Google Fonts ────────────────────────────────────────────────────────────
 const playfairDisplay = Playfair_Display({
@@ -78,6 +79,9 @@ export default function RootLayout({ children }) {
           <CartProvider>
             <NotificationsProvider>
               <SearchProvider>
+              {/* Keep Render free-tier backend warm — pings /health every 14 min */}
+              <RenderKeepAlive />
+
               {/* Scroll progress indicator */}
               <ScrollProgress />
 

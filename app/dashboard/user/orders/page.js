@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import axios from "axios";
 import { useAuth } from "../../../../Context/auth";
 import moment from "moment";
 import toast from "react-hot-toast";
@@ -11,7 +10,8 @@ import {
   FiShoppingBag, FiX, FiClock, FiAlertCircle,
   FiChevronDown, FiChevronUp, FiRefreshCw,
 } from "react-icons/fi";
-import { BACKEND } from "@/lib/api";
+// ✅ Use centralized api instance — correct BACKEND URL + 3-retry logic
+import api from "@/lib/api";
 import { connectSocket } from "@/lib/socket";
 import OrderTracker from "@/components/OrderTracker";
 import DeliveryETA from "@/components/DeliveryETA";
@@ -233,23 +233,31 @@ export default function Orders() {
   const [activeTab, setActiveTab] = useState("active"); // "active" | "all" | "completed" | "cancelled"
 
   // ── Fetch orders ──────────────────────────────────────────────────────────
+  // ✅ FIX: Use centralized api instance — no raw axios, no hardcoded BACKEND
+  // The api instance reads NEXT_PUBLIC_API_URL at runtime, has 20s timeout,
+  // 3 auto-retries, and automatically attaches the Bearer token via interceptor.
   const fetchOrders = useCallback(async () => {
+    // ✅ RACE CONDITION FIX: auth starts as `null` on first render (localStorage
+    // is async). We guard here — the useEffect below will re-run once auth populates.
     if (!auth?.token) return;
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get(`${BACKEND}/api/v1/payment/orders`, {
-        headers: { Authorization: `Bearer ${auth.token}` },
-      });
+      // api interceptor already attaches Authorization header automatically
+      const { data } = await api.get("/api/v1/payment/orders");
       setOrders(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching orders:", err);
-      setError("Failed to load orders. Please try again.");
+      const msg = err.response?.data?.message || err.message || "Failed to load orders";
+      setError(`Failed to load orders. ${msg}`);
     } finally {
       setLoading(false);
     }
   }, [auth?.token]);
 
+  // Re-runs whenever auth.token changes (handles the race condition:
+  // initially auth=null → no fetch. Once localStorage loads → auth.token
+  // is set → fetchOrders re-runs properly)
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -302,10 +310,9 @@ export default function Orders() {
   // ── Cancel order ──────────────────────────────────────────────────────────
   const cancelOrder = async (orderId) => {
     try {
-      const { data } = await axios.post(
-        `${BACKEND}/api/v1/payment/orders/${orderId}/cancel`,
-        { reason: "Cancelled by customer" },
-        { headers: { Authorization: `Bearer ${auth.token}` } }
+      const { data } = await api.post(
+        `/api/v1/payment/orders/${orderId}/cancel`,
+        { reason: "Cancelled by customer" }
       );
       if (data?.order) {
         setOrders((prev) => prev.map((o) => (o._id === orderId ? data.order : o)));
